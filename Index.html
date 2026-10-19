@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Training</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <style>
+/* Example training platform, course renderer
+   Palette: crimson #7b0b18 is both the brand and the alarm colour. In this
+   subject those are the same thing, so the page spends its single bold colour
+   there and keeps everything else neutral-warm.
+   Type: Archivo for headings, IBM Plex Sans for reading, IBM Plex Mono for
+   anything you are meant to read character by character, such as email addresses,
+   domains, links. That is the lesson, encoded in the typography. */
+
+:root {
+  --crimson: #7b0b18;
+  --crimson-ink: #7b0b18;
+  --crimson-soft: #f7ebec;
+  --crimson-line: #e2c4c8;
+
+  --ground: #faf8f7;
+  --surface: #ffffff;
+  --surface-2: #f3efee;
+  --line: #e4dedd;
+  --line-strong: #cfc7c6;
+
+  --ink: #1a1416;
+  --ink-2: #4a4245;
+  --muted: #6f6669;
+
+  --good: #156b52;
+  --good-soft: #e8f3ef;
+  --good-line: #b9dcd0;
+  --caution: #8a5600;
+  --caution-soft: #fbf1e0;
+  --caution-line: #e6cfa4;
+
+  --on-crimson: #ffffff;
+  --crimson-fill: #7b0b18;
+  --on-fill: #ffffff;
+
+  --radius: 6px;
+  --radius-lg: 10px;
+  --maxw: 660px;      /* reading column: ~73 characters per line */
+  --maxw-card: 860px;  /* interactive cards and exam questions */
+  --maxw-stage: 940px; /* outer bound for a module screen */
+
+  --font-display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", Arial, Helvetica, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+
+  --shadow: 0 1px 2px rgba(26, 20, 22, .05), 0 8px 24px -12px rgba(26, 20, 22, .18);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --crimson: #e0687a;
+    --crimson-ink: #f0909e;
+    --crimson-soft: #2c1a1e;
+    --crimson-line: #4d2a30;
+
+    --ground: #141011;
+    --surface: #1c1719;
+    --surface-2: #241e20;
+    --line: #332b2d;
+    --line-strong: #453b3e;
+
+    --ink: #f3efee;
+    --ink-2: #d3caca;
+    --muted: #a1979a;
+
+    --good: #5cc3a0;
+    --good-soft: #16261f;
+    --good-line: #27443a;
+    --caution: #e2a95a;
+    --caution-soft: #2a2114;
+    --caution-line: #4a3a20;
+
+    --on-crimson: #ffffff;
+    --crimson-fill: #d1465d;
+    --on-fill: #ffffff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -12px rgba(0, 0, 0, .7);
+  }
+}
+
+:root[data-theme="dark"] {
+  --crimson: #e0687a;
+  --crimson-ink: #f0909e;
+  --crimson-soft: #2c1a1e;
+  --crimson-line: #4d2a30;
+  --ground: #141011;
+  --surface: #1c1719;
+  --surface-2: #241e20;
+  --line: #332b2d;
+  --line-strong: #453b3e;
+  --ink: #f3efee;
+  --ink-2: #d3caca;
+  --muted: #a1979a;
+  --good: #5cc3a0;
+  --good-soft: #16261f;
+  --good-line: #27443a;
+  --caution: #e2a95a;
+  --caution-soft: #2a2114;
+  --caution-line: #4a3a20;
+  --on-crimson: #ffffff;
+  --crimson-fill: #d1465d;
+  --on-fill: #ffffff;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -12px rgba(0, 0, 0, .7);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -.015em; }
+p { margin: 0; }
+a { color: var(--crimson-ink); text-underline-offset: 3px; }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; border-radius: 3px; }
+
+/* ---------------------------------------------------------------- shell */
+.shell { display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; }
+
+.rail {
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  padding: 22px 18px 40px;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+.brandmark { display: flex; flex-direction: column; gap: 3px; }
+.brandmark .org {
+  font-family: var(--font-display); font-weight: 700; font-size: 13px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--crimson-ink);
+}
+.brandmark .thing { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+
+.progress-wrap { display: flex; flex-direction: column; gap: 7px; }
+.progress-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: .04em; text-transform: uppercase; }
+.progress-track { height: 4px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; width: 0%; background: var(--crimson); border-radius: 99px; transition: width .35s cubic-bezier(.4, 0, .2, 1); }
+
+nav.steps { display: flex; flex-direction: column; gap: 1px; }
+.step {
+  display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start;
+  background: none; border: 0; text-align: left; padding: 8px 8px; border-radius: var(--radius);
+  color: var(--ink-2); font-size: 13.5px; line-height: 1.35; width: 100%;
+}
+.step:hover:not(:disabled) { background: var(--surface-2); }
+.step:disabled { color: var(--muted); opacity: .55; cursor: not-allowed; }
+.step .num {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  border: 1px solid var(--line-strong); border-radius: 4px; height: 20px;
+  display: grid; place-items: center; color: var(--muted); margin-top: 1px;
+}
+.step[aria-current="true"] { background: var(--crimson-soft); color: var(--crimson-ink); font-weight: 600; }
+.step[aria-current="true"] .num { border-color: var(--crimson); color: var(--crimson-ink); }
+.step.done .num { background: var(--good); border-color: var(--good); color: #fff; }
+.step.done .num::after { content: "✓"; font-size: 11px; }
+.step.done .num span { display: none; }
+
+/* Back to the course list. Sits directly under the brandmark rather than in
+   the footer: somebody who has just finished a course is at the bottom of a
+   long page, and the rail is the one thing that does not move. */
+.rail-back {
+  display: inline-flex; align-items: center; gap: 7px; align-self: flex-start;
+  margin: -4px 0 4px; padding: 6px 10px 6px 7px; border-radius: var(--radius);
+  color: var(--ink-2); font-size: 13px; text-decoration: none;
+  border: 1px solid transparent;
+}
+.rail-back:hover { background: var(--surface-2); border-color: var(--line); color: var(--ink); }
+.rail-back:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+.rail-back .arrow { font-size: 15px; line-height: 1; }
+
+/* Admin links. Only ever rendered for someone the server has confirmed is an
+   admin, and only after it has said so, so an ordinary visit never shows them
+   even briefly. */
+.rail-admin { display: flex; flex-direction: column; gap: 4px; margin: 2px 0 6px;
+  padding-top: 10px; border-top: 1px solid var(--line); }
+.rail-admin .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.rail-adm { display: inline-flex; align-items: center; gap: 7px; align-self: flex-start;
+  padding: 5px 10px 5px 7px; border-radius: var(--radius); color: var(--ink-2);
+  font-size: 13px; text-decoration: none; border: 1px solid transparent; }
+.rail-adm:hover { background: var(--surface-2); border-color: var(--line); color: var(--ink); }
+.rail-adm:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+.rail-adm .ic { font-size: 14px; line-height: 1; opacity: .75; }
+
+.rail-foot { margin-top: auto; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
+.rail-foot a { color: var(--muted); }
+
+/* ---------------------------------------------------------------- main */
+main { padding: 0 0 96px; }
+.stage { max-width: var(--maxw-stage); margin: 0 auto; padding: 0 28px; }
+/* Two tiers: prose stays at a readable measure, cards get the extra room. */
+.stage > * { max-width: var(--maxw-card); margin-left: auto; margin-right: auto; }
+.stage > .hero, .stage > .module-head, .stage > .blocks { max-width: var(--maxw); }
+.stage-wide { max-width: 860px; margin: 0 auto; padding: 0 28px; }
+
+.preview-banner {
+  background: var(--caution-soft); border-bottom: 1px solid var(--caution-line);
+  color: var(--caution); font-size: 13px; padding: 9px 28px; text-align: center;
+}
+.preview-banner strong { font-weight: 600; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--ground) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  padding: 11px 28px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.topbar .who { font-size: 12.5px; color: var(--muted); }
+.topbar .who b { color: var(--ink-2); font-weight: 500; font-family: var(--font-mono); font-size: 12px; }
+/* The way out for somebody who opened the training on the wrong account.
+   Deliberately quiet: it sits next to the address it refers to, and most
+   people should never notice it. */
+.topbar .swap { font-size: 12.5px; color: var(--muted); margin-left: 10px; }
+.topbar .swap a { color: var(--crimson-ink); text-decoration: none; border-bottom: 1px solid var(--crimson-line); }
+.topbar .swap a:hover { color: var(--crimson); }
+.topbar .swap .sep { opacity: .5; margin: 0 6px; }
+.chip {
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600;
+  padding: 3px 8px; border-radius: 99px; border: 1px solid var(--line-strong); color: var(--muted);
+}
+.chip.pass { background: var(--good-soft); border-color: var(--good-line); color: var(--good); }
+
+/* --------------------------------------------------------------- intro */
+.hero { padding: 64px 0 40px; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--crimson-ink); margin-bottom: 18px;
+}
+.hero h1 { font-size: clamp(34px, 5vw, 48px); line-height: 1.04; font-weight: 700; }
+.hero .sub { font-size: 18px; color: var(--ink-2); margin-top: 16px; line-height: 1.5; }
+.hero .lead { font-size: 17px; margin-top: 26px; line-height: 1.62; }
+
+.meta-row { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--line); }
+.meta-item { display: flex; flex-direction: column; gap: 2px; }
+.meta-item .k { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.meta-item .v { font-family: var(--font-display); font-weight: 600; font-size: 16px; }
+
+.outcomes { margin-top: 34px; display: flex; flex-direction: column; gap: 11px; }
+.outcomes li { display: grid; grid-template-columns: 16px 1fr; gap: 12px; align-items: start; font-size: 15.5px; }
+.outcomes { list-style: none; padding: 0; }
+.outcomes .tick { color: var(--crimson-ink); font-weight: 700; line-height: 1.5; }
+
+.notice {
+  margin-top: 34px; border: 1px solid var(--line); background: var(--surface);
+  border-radius: var(--radius-lg); padding: 18px 20px; font-size: 14px; color: var(--ink-2);
+  display: flex; flex-direction: column; gap: 7px;
+}
+.notice .nh { font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--ink); letter-spacing: 0; }
+
+/* ------------------------------------------------------------- modules */
+.module-head { padding: 52px 0 8px; display: flex; flex-direction: column; gap: 12px; }
+.module-head .kicker {
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.module-head h2 { font-size: clamp(27px, 3.6vw, 34px); line-height: 1.12; font-weight: 700; }
+.module-head .summary { color: var(--ink-2); font-size: 16.5px; }
+
+.blocks { display: flex; flex-direction: column; gap: 22px; padding: 30px 0 8px; }
+.blocks .lead { font-size: 18px; line-height: 1.55; color: var(--ink); font-weight: 500; }
+.blocks p { font-size: 16px; color: var(--ink-2); }
+.blocks h3 {
+  font-size: 13px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700;
+  color: var(--ink); margin-top: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+}
+.blocks ul, .blocks ol { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.blocks ul li { display: grid; grid-template-columns: 7px 1fr; gap: 14px; align-items: start; font-size: 15.5px; color: var(--ink-2); }
+.blocks ul li::before { content: ""; width: 5px; height: 5px; border-radius: 99px; background: var(--line-strong); margin-top: .62em; }
+.list-title { font-weight: 600; color: var(--ink); font-size: 15.5px; margin-bottom: -4px; }
+ol.numbered { counter-reset: n; }
+ol.numbered li { display: grid; grid-template-columns: 26px 1fr; gap: 14px; align-items: start; font-size: 16px; color: var(--ink); counter-increment: n; }
+ol.numbered li::before {
+  content: counter(n); font-family: var(--font-mono); font-size: 12px; color: var(--crimson-ink);
+  border: 1px solid var(--crimson-line); border-radius: 4px; height: 22px; display: grid; place-items: center;
+  margin-top: 1px;
+}
+
+.callout {
+  border-radius: var(--radius-lg); padding: 16px 18px; display: flex; flex-direction: column; gap: 6px;
+  border: 1px solid var(--line); background: var(--surface); border-left-width: 3px;
+}
+.callout .ct { font-family: var(--font-display); font-weight: 600; font-size: 15px; }
+.callout .cb { font-size: 15px; color: var(--ink-2); }
+.callout.warn { border-left-color: var(--crimson); background: var(--crimson-soft); border-color: var(--crimson-line); }
+.callout.warn .ct { color: var(--crimson-ink); }
+.callout.good { border-left-color: var(--good); background: var(--good-soft); border-color: var(--good-line); }
+.callout.good .ct { color: var(--good); }
+.callout.info { border-left-color: var(--line-strong); background: var(--surface-2); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+.stats > div { background: var(--surface); padding: 18px; display: flex; flex-direction: column; gap: 4px; }
+.stats .figure { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--crimson-ink); }
+.stats .label { font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+
+.flags { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+.flag { background: var(--surface); padding: 14px 16px; display: grid; grid-template-columns: 26px 1fr; gap: 14px; align-items: start; }
+.flag .fnum { font-family: var(--font-mono); font-size: 11px; color: var(--on-fill); background: var(--crimson-fill); border-radius: 4px; height: 21px; display: grid; place-items: center; margin-top: 2px; font-weight: 500; }
+.flag .ft { font-weight: 600; font-size: 15px; }
+.flag .fb { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+
+.goodbad { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.gb { border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px; background: var(--surface); display: flex; flex-direction: column; gap: 11px; }
+.gb .gbh { font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.gb.is-good { border-color: var(--good-line); } .gb.is-good .gbh { color: var(--good); }
+.gb.is-bad { border-color: var(--crimson-line); } .gb.is-bad .gbh { color: var(--crimson-ink); }
+.gb ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.gb li { font-size: 14.5px; color: var(--ink-2); display: grid; grid-template-columns: 16px 1fr; gap: 11px; align-items: start; line-height: 1.45; }
+.gb.is-good li::before { content: "✓"; color: var(--good); font-size: 14px; font-weight: 700; line-height: 1.45; }
+.gb.is-bad li::before { content: "✕"; color: var(--crimson-ink); font-size: 14px; font-weight: 700; line-height: 1.45; }
+
+.access { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+.access-row { background: var(--surface); padding: 13px 16px; display: grid; grid-template-columns: 172px 1fr; gap: 16px; align-items: start; }
+.access-row .lvl { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.access-row .dot { width: 8px; height: 8px; border-radius: 99px; flex: none; }
+.access-row.good .dot { background: var(--good); } .access-row.good .lvl { color: var(--good); }
+.access-row.warn .dot { background: var(--caution); } .access-row.warn .lvl { color: var(--caution); }
+.access-row.bad .dot { background: var(--crimson); } .access-row.bad .lvl { color: var(--crimson-ink); }
+.access-row .txt { font-size: 14.5px; color: var(--ink-2); line-height: 1.45; }
+
+.steps-list { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; counter-reset: s; }
+.step-item { background: var(--surface); padding: 14px 16px; display: grid; grid-template-columns: 24px 1fr; gap: 14px; counter-increment: s; }
+.step-item::before { content: counter(s); font-family: var(--font-mono); font-size: 11px; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 4px; height: 21px; display: grid; place-items: center; margin-top: 2px; }
+.step-item .sit { font-weight: 600; font-size: 15px; }
+.step-item .sib { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+
+.module-mark { width: 46px; height: 46px; border: 1px solid var(--crimson-line); background: var(--crimson-soft);
+  border-radius: var(--radius); display: grid; place-items: center; color: var(--crimson-ink); flex: none; }
+.module-mark svg { width: 26px; height: 26px; display: block; }
+.module-head .titleline { display: flex; align-items: center; gap: 14px; }
+
+/* ----------------------------------------------------------- exercises */
+.check { margin: 36px 0 0; border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow); overflow: hidden; }
+.check-head { padding: 16px 20px 14px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.check-head .tag { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--crimson-ink); }
+.check-head .q { font-family: var(--font-display); font-weight: 600; font-size: 17px; line-height: 1.34; }
+.check-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 9px; }
+
+.opt {
+  display: grid; grid-template-columns: 24px 1fr; gap: 13px; align-items: start;
+  text-align: left; width: 100%; padding: 13px 15px; border-radius: var(--radius);
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 15px; line-height: 1.45;
+  transition: border-color .15s, background .15s;
+}
+.opt:hover:not(:disabled) { border-color: var(--line-strong); background: var(--surface-2); }
+.opt:disabled { cursor: default; }
+.opt .key { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 4px; height: 21px; display: grid; place-items: center; margin-top: 1px; font-weight: 500; }
+.opt.correct { border-color: var(--good); background: var(--good-soft); }
+.opt.correct .key { background: var(--good); border-color: var(--good); color: #fff; }
+.opt.wrong { border-color: var(--crimson); background: var(--crimson-soft); }
+.opt.wrong .key { background: var(--crimson-fill); border-color: var(--crimson-fill); color: var(--on-fill); }
+.opt.dim { opacity: .5; }
+
+.feedback { margin-top: 4px; border-radius: var(--radius); padding: 13px 15px; font-size: 14.5px; line-height: 1.5; display: flex; flex-direction: column; gap: 7px; }
+.feedback.ok { background: var(--good-soft); border: 1px solid var(--good-line); color: var(--ink-2); }
+.feedback.no { background: var(--crimson-soft); border: 1px solid var(--crimson-line); color: var(--ink-2); }
+.feedback .fh { font-family: var(--font-display); font-weight: 700; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; }
+.feedback.ok .fh { color: var(--good); } .feedback.no .fh { color: var(--crimson-ink); }
+.feedback .why { color: var(--ink-2); }
+.feedback .why b { color: var(--ink); font-weight: 600; }
+
+/* fake email */
+.mail { border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; background: var(--surface); font-size: 15px; }
+.mail-head { padding: 13px 15px; border-bottom: 1px solid var(--line); background: var(--surface-2); display: flex; flex-direction: column; gap: 5px; }
+.mail-subject { font-weight: 600; font-size: 15.5px; }
+.mail-line { display: grid; grid-template-columns: 52px 1fr; gap: 10px; font-size: 12.5px; align-items: baseline; }
+.mail-line .l { color: var(--muted); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+.mail-line .v { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-2); word-break: break-all; }
+.mail-line .v .name { font-family: var(--font-body); color: var(--ink); font-weight: 600; }
+.mail-body { padding: 16px 15px; display: flex; flex-direction: column; gap: 12px; color: var(--ink-2); line-height: 1.55; font-size: 14.5px; }
+.mail-body .sig { color: var(--muted); font-size: 13px; }
+
+.hot {
+  background: none; border: 1px dashed var(--line-strong); border-radius: 4px;
+  padding: 6px 8px; margin: -3px 0; text-align: left; display: block; width: 100%;
+  color: inherit; font: inherit; line-height: inherit; transition: background .15s, border-color .15s;
+}
+.hot:hover:not(:disabled) { border-color: var(--crimson); background: var(--crimson-soft); }
+.hot.found { border: 1px solid var(--crimson); background: var(--crimson-soft); color: var(--crimson-ink); border-style: solid; }
+.hot.missed { border: 1px solid var(--caution); background: var(--caution-soft); border-style: solid; }
+.hot-inline { display: inline-block; width: auto; padding: 2px 6px; margin: 0; }
+.hot-why { display: block; margin-top: 7px; font-size: 13px; color: var(--ink-2); line-height: 1.45; padding-left: 10px; border-left: 2px solid var(--crimson-line); }
+.hot-count { font-family: var(--font-mono); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; padding-top: 4px; }
+
+/* sharing simulator */
+.sim { border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.sim-head { padding: 13px 15px; border-bottom: 1px solid var(--line); background: var(--surface-2); display: flex; flex-direction: column; gap: 3px; }
+.sim-head .sf { font-family: var(--font-display); font-weight: 600; font-size: 15px; }
+.sim-head .sl { font-size: 12px; color: var(--muted); }
+.sim-field { padding: 14px 15px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 9px; }
+.sim-field:last-child { border-bottom: 0; }
+.sim-field .fl { font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.sim-opts { display: flex; flex-direction: column; gap: 7px; }
+
+/* -------------------------------------------------------------- footer */
+.actions { display: flex; gap: 10px; align-items: center; padding: 32px 0 0; flex-wrap: wrap; }
+.btn {
+  border: 1px solid var(--crimson-fill); background: var(--crimson-fill); color: var(--on-fill);
+  padding: 11px 22px; border-radius: var(--radius); font-family: var(--font-display);
+  font-weight: 600; font-size: 15px; letter-spacing: .005em; transition: opacity .15s;
+}
+.btn:hover:not(:disabled) { opacity: .88; }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn.ghost { background: none; color: var(--ink-2); border-color: var(--line-strong); }
+.btn.ghost:hover:not(:disabled) { background: var(--surface-2); }
+.hint { font-size: 13.5px; color: var(--muted); }
+
+/* --------------------------------------------------------------- final */
+.exam-q { border-top: 1px solid var(--line); padding: 26px 0; display: flex; flex-direction: column; gap: 14px; }
+.exam-q:first-of-type { border-top: 0; }
+.exam-q .qn { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.exam-q .qt { font-family: var(--font-display); font-weight: 600; font-size: 17px; line-height: 1.35; }
+.exam-opts { display: flex; flex-direction: column; gap: 8px; }
+
+.result { text-align: center; padding: 60px 0 20px; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.score-ring { position: relative; width: 148px; height: 148px; }
+.score-ring svg { transform: rotate(-90deg); }
+.score-ring .val { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 34px; font-variant-numeric: tabular-nums; }
+.result h2 { font-size: 30px; }
+.result .rsub { color: var(--ink-2); font-size: 16px; max-width: 46ch; }
+
+.review { margin-top: 34px; display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; text-align: left; }
+.review-row { background: var(--surface); padding: 14px 16px; display: grid; grid-template-columns: 20px 1fr; gap: 13px; align-items: start; }
+.review-row .mk { font-size: 13px; line-height: 1.5; }
+.review-row.ok .mk { color: var(--good); } .review-row.no .mk { color: var(--crimson-ink); }
+.review-row .rq { display: block; font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+.review-row .ra { display: block; font-size: 13.5px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+
+.takeaways { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; text-align: left; }
+.takeaways li { background: var(--surface); padding: 12px 16px; display: grid; grid-template-columns: 16px 1fr; gap: 12px; font-size: 15px; color: var(--ink-2); align-items: start; }
+.takeaways li::before { content: "→"; color: var(--crimson-ink); font-size: 13px; line-height: 1.55; }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+  nav.steps { display: none; }
+  .access-row { grid-template-columns: 1fr; gap: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+/* ============================================================ interface mocks
+   Realistic renders of the screens the training is actually about. A staff
+   member recognises these; they do not recognise a stock photograph. All are
+   built from tokens so they hold up in both themes. */
+
+/* The fake sign-in page.
+   Deliberately a drawing, not a form: there are no inputs on this screen and
+   nothing to submit. A training exercise about a credential-harvesting page
+   should not itself contain a working password box, even an inert one. */
+.fakewin { border: 1px solid var(--line-strong); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface); }
+.fakebar { display: flex; align-items: center; gap: 9px; padding: 9px 11px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.fakedots { display: flex; gap: 5px; flex: 0 0 auto; }
+.fakedots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); display: block; }
+.fakeurl { flex: 1 1 auto; min-width: 0; }
+.fake-sec { font-size: 11.5px; letter-spacing: .02em; }
+.fakepage { padding: 30px 22px 34px; display: flex; flex-direction: column; align-items: center; gap: 13px; text-align: center; }
+.fakemark { font-size: 30px; font-weight: 700; letter-spacing: -.5px; font-family: Arial, Helvetica, sans-serif; }
+.fakemark .c1 { color: #3b7ddd; } .fakemark .c2 { color: #d94c3d; }
+.fakemark .c3 { color: #e8b020; } .fakemark .c4 { color: #3f9a56; }
+.fakeh { font-size: 20px; font-weight: 600; }
+.fakesub { font-size: 14px; color: var(--ink-2); }
+.fakefield { width: 100%; max-width: 300px; border: 1px solid var(--line-strong); border-radius: 5px;
+  padding: 11px 12px; text-align: left; font-size: 14px; color: var(--ink-2); background: var(--surface); }
+.fakefield.ghost { color: var(--muted); }
+.fakebtn { align-self: flex-end; background: #3b7ddd; color: #fff; border-radius: 5px; padding: 9px 20px; font-size: 14px; font-weight: 600; }
+.fakerow { width: 100%; max-width: 300px; display: flex; justify-content: flex-end; }
+.fakebanner { width: 100%; font-size: 13px; line-height: 1.45; padding: 9px 12px; border-radius: 5px; text-align: left; }
+.sgn { cursor: pointer; border: 1px dashed var(--line-strong); background: none; border-radius: 5px; padding: 3px 7px; text-align: inherit; font: inherit; color: inherit; }
+.sgn:hover:not(:disabled) { border-color: var(--crimson); background: var(--crimson-soft); }
+.sgn.found { border-style: solid; border-color: var(--crimson); background: var(--crimson-soft); }
+.sgn.missed { border-style: solid; border-color: var(--caution); background: var(--caution-soft); }
+.sgn-url { display: block; width: 100%; font-family: var(--font-mono); font-size: 12.5px; word-break: break-all; }
+.sgn-why { display: block; margin-top: 6px; font-size: 12.5px; color: var(--ink-2); line-height: 1.45; text-align: left;
+  padding-left: 9px; border-left: 2px solid var(--crimson-line); }
+.sgn-score { font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 10px; flex-wrap: wrap; }
+.sgn-stage2 { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.sgn-opts { display: flex; flex-direction: column; gap: 9px; }
+.sgn-q { font-weight: 600; font-size: 15.5px; margin-bottom: 11px; line-height: 1.4; }
+.sgn-sim { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  text-align: center; padding: 7px; border-top: 1px solid var(--line); background: var(--surface-2); }
+
+.mock { border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface); overflow: hidden; }
+.mock-cap { font-size: 13px; color: var(--muted); line-height: 1.45; padding: 11px 15px; border-top: 1px solid var(--line); background: var(--surface-2); }
+.mock-cap b { color: var(--ink); font-weight: 600; }
+
+/* phone push notification */
+.phone { padding: 26px 20px; display: grid; place-items: center; background: var(--surface-2); }
+.phone-inner { width: 100%; max-width: 330px; background: #171314; border-radius: 20px; padding: 14px; box-shadow: 0 10px 30px -14px rgba(0,0,0,.55); }
+.phone-time { color: #b9b0b2; font-family: var(--font-mono); font-size: 11px; display: flex; justify-content: space-between; padding: 0 6px 12px; }
+.push { background: #2b2427; border-radius: 13px; padding: 12px 13px; display: flex; flex-direction: column; gap: 8px; }
+.push-app { display: flex; align-items: center; gap: 7px; font-size: 11px; color: #b9b0b2; font-family: var(--font-mono); letter-spacing: .03em; }
+.push-dot { width: 15px; height: 15px; border-radius: 4px; background: var(--crimson-fill); flex: none; }
+.push-t { color: #fff; font-weight: 600; font-size: 14.5px; font-family: var(--font-display); }
+.push-b { color: #d6cfd1; font-size: 13px; line-height: 1.45; }
+.push-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 3px; }
+.push-btn { border-radius: 8px; padding: 8px; text-align: center; font-size: 13px; font-weight: 600; border: 1px solid #4a3f43; color: #d6cfd1; }
+.push-btn.no { background: #1f7a5c; border-color: #1f7a5c; color: #fff; }
+.push-note { display: flex; gap: 9px; align-items: flex-start; padding: 11px 15px; font-size: 13.5px; color: var(--ink-2); line-height: 1.45; border-top: 1px solid var(--line); }
+.push-note .pn { font-family: var(--font-mono); font-size: 10.5px; color: var(--on-fill); background: var(--crimson-fill); border-radius: 4px; padding: 2px 6px; flex: none; margin-top: 1px; }
+
+/* google share dialog */
+.dlg { padding: 0; }
+.dlg-bar { padding: 14px 16px 12px; border-bottom: 1px solid var(--line); font-family: var(--font-display); font-weight: 600; font-size: 15.5px; }
+.dlg-sec { padding: 13px 16px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; position: relative; }
+.dlg-sec:last-of-type { border-bottom: 0; }
+.dlg-sec .sec-h { font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 9px; }
+.dlg-sec .badge { font-family: var(--font-mono); font-size: 10.5px; background: var(--crimson-fill); color: var(--on-fill); border-radius: 4px; padding: 2px 6px; }
+.dlg-person { display: grid; grid-template-columns: 30px 1fr auto; gap: 11px; align-items: center; }
+.avatar { width: 30px; height: 30px; border-radius: 99px; background: var(--crimson-soft); color: var(--crimson-ink); display: grid; place-items: center; font-size: 12px; font-weight: 700; font-family: var(--font-display); border: 1px solid var(--crimson-line); }
+.dlg-person .pn { font-size: 13.5px; }
+.dlg-person .pe { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); }
+.pill { font-size: 12.5px; border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 5px 11px; color: var(--ink-2); background: var(--surface); white-space: nowrap; }
+.pill.good { border-color: var(--good-line); background: var(--good-soft); color: var(--good); font-weight: 600; }
+.pill.bad { border-color: var(--crimson-line); background: var(--crimson-soft); color: var(--crimson-ink); font-weight: 600; }
+.dlg-access { display: grid; grid-template-columns: 30px 1fr auto; gap: 11px; align-items: center; }
+.dlg-access .globe { width: 30px; height: 30px; border-radius: 99px; background: var(--good-soft); border: 1px solid var(--good-line); display: grid; place-items: center; color: var(--good); font-size: 13px; }
+.dlg-note { font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+/* screen share picker */
+.picker { padding: 15px 16px; display: flex; flex-direction: column; gap: 12px; }
+.picker-h { font-family: var(--font-display); font-weight: 600; font-size: 14.5px; }
+.picker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 11px; }
+.tile { border: 2px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.tile.pick { border-color: var(--good); }
+.tile.avoid { border-color: var(--crimson); }
+.tile-thumb { height: 74px; background: var(--surface-2); border-bottom: 1px solid var(--line); padding: 7px; display: flex; flex-direction: column; gap: 4px; }
+.tile-thumb i { display: block; background: var(--line-strong); border-radius: 2px; height: 6px; }
+.tile-thumb i.w60 { width: 60%; } .tile-thumb i.w85 { width: 85%; } .tile-thumb i.w40 { width: 40%; }
+.tile-thumb i.leak { background: var(--crimson); }
+.tile-label { padding: 8px 10px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tile-label b { font-weight: 600; }
+.tag-good { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--good); font-weight: 700; }
+.tag-bad { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--crimson-ink); font-weight: 700; }
+
+/* channel flow */
+.flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: stretch; padding: 18px 16px; }
+.flow-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 13px; background: var(--surface-2); display: flex; flex-direction: column; gap: 5px; }
+.flow-box.stop { border-color: var(--crimson-line); background: var(--crimson-soft); }
+.flow-box.go { border-color: var(--good-line); background: var(--good-soft); }
+.flow-k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.flow-box.stop .flow-k { color: var(--crimson-ink); } .flow-box.go .flow-k { color: var(--good); }
+.flow-t { font-weight: 600; font-size: 14px; line-height: 1.35; }
+.flow-b { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.flow-arrow { display: grid; place-items: center; color: var(--line-strong); font-size: 17px; }
+
+/* reporting clock */
+.clock { padding: 18px 16px 16px; display: flex; flex-direction: column; gap: 13px; }
+.clock-bar { height: 7px; border-radius: 99px; background: linear-gradient(90deg, var(--good) 0%, var(--caution) 45%, var(--crimson-fill) 100%); }
+.clock-marks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.clock-mark { display: flex; flex-direction: column; gap: 3px; }
+.clock-mark .cw { font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; }
+.clock-mark .cb { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.clock-mark.c1 .cw { color: var(--good); }
+.clock-mark.c2 .cw, .clock-mark.c3 .cw { color: var(--caution); }
+.clock-mark.c4 .cw { color: var(--crimson-ink); }
+
+/* inside / outside our systems */
+.boundary { padding: 18px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.zone { border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 9px; }
+.zone.in { border: 1px solid var(--good-line); background: var(--good-soft); }
+.zone.out { border: 1px dashed var(--crimson-line); background: var(--crimson-soft); }
+.zone-h { font-family: var(--font-display); font-weight: 700; font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; }
+.zone.in .zone-h { color: var(--good); } .zone.out .zone-h { color: var(--crimson-ink); }
+.zone ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.zone li { font-size: 13.5px; color: var(--ink-2); line-height: 1.4; }
+.zone .zn { font-size: 12.5px; color: var(--muted); line-height: 1.4; margin-top: 2px; }
+
+@media (max-width: 700px) {
+  .flow { grid-template-columns: 1fr; }
+  .flow-arrow { transform: rotate(90deg); }
+  .boundary { grid-template-columns: 1fr; }
+  .clock-marks { grid-template-columns: 1fr 1fr; }
+}
+
+  </style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="rail" id="rail"></aside>
+  <div>
+    
+    <div class="topbar" id="topbar"></div>
+    <main id="view"></main>
+  </div>
+</div>
+<script>
+  window.TRAINING = <?!= contentJson ?>;
+  window.APP_MODE = 'live';
+  window.APP_USER = <?!= userJson ?>;
+  window.APP_ORG  = <?!= orgJson ?>;
+</script>
+<script>
+/* Example training platform, course renderer (client)
+   Expects two globals set by the build/host page:
+     TRAINING  - the content object (see src/content.js)
+     APP_MODE  - 'preview' (no recording) or 'live' (records via Apps Script)
+     APP_USER  - { email, name, courseId, canGoBack, baseUrl } in live mode,
+                 null in preview
+*/
+(function () {
+  'use strict';
+
+  var MODE = window.APP_MODE || 'preview';
+  var USER = window.APP_USER || null;
+  var T = window.TRAINING;
+  /* Branding comes from here, never from copy typed into this file. This page
+     renders whichever course it is handed, so anything naming one course or one
+     organisation would be wrong on the others. */
+  var O = window.APP_ORG || { name: 'Example' };
+  var MODS = T.modules;
+  var LAST = MODS.length + 1;          // index of the final exam
+  var RESULT = MODS.length + 2;        // index of the result screen
+
+  var state = {
+    idx: 0,
+    checks: {},                        // checkId -> { answer, correct }
+    exam: {},                          // questionId -> optionId
+    examSubmitted: false,
+    drafts: { hotspot: [], sim: {}, signin: { found: [], stage: 1 } },
+    admin: null,                       // filled in after load, see getAdminRailLinks
+    startedAt: new Date().toISOString(),
+    saved: false
+  };
+
+  /* --------------------------------------------------------------- util */
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* Prose that may carry links, written in the content as [label](linkKey)
+     where linkKey names an entry in T.links. The text is escaped FIRST and the
+     anchor built afterwards, so content can carry links without carrying HTML
+     and nothing in a course file can inject markup. An unknown key renders as
+     plain text rather than a dead link, so a mistyped key degrades to the words
+     rather than to a broken anchor. */
+  function inline(s) {
+    return esc(s).replace(/\[([^\]\[]+)\]\(([A-Za-z0-9_]+)\)/g, function (m, label, key) {
+      var href = (T.links || {})[key];
+      if (!href) return label;
+      var isMail = href.indexOf('@') > -1 && href.indexOf('://') < 0;
+      return isMail
+        ? '<a href="mailto:' + esc(href) + '">' + label + '</a>'
+        : '<a href="' + esc(href) + '" target="_blank" rel="noopener">' + label + '</a>';
+    });
+  }
+  function el(id) { return document.getElementById(id); }
+  var LETTERS = ['A', 'B', 'C', 'D', 'E'];
+
+  /* ---------------------------------------------------------------- art */
+  var ART = {
+    globe: '<circle cx="60" cy="60" r="40"/><ellipse cx="60" cy="60" rx="17" ry="40"/><path d="M22 46h76M22 74h76"/><path d="M60 20v80" opacity=".35"/>',
+    impersonation: '<circle cx="42" cy="46" r="16"/><path d="M18 92c0-13 11-22 24-22s24 9 24 22"/><rect x="66" y="30" width="38" height="30" rx="4" stroke-dasharray="5 4"/><path d="M66 60l10 12 8-12" stroke-dasharray="5 4"/><path d="M76 40h18M76 48h12"/>',
+    flags: '<path d="M32 100V22"/><path d="M32 26h48l-9 14 9 14H32z" fill="currentColor" opacity=".14"/><path d="M32 26h48l-9 14 9 14H32z"/><circle cx="32" cy="18" r="4"/>',
+    pause: '<circle cx="60" cy="60" r="38"/><rect x="49" y="44" width="7" height="32" rx="2" fill="currentColor"/><rect x="64" y="44" width="7" height="32" rx="2" fill="currentColor"/>',
+    key: '<circle cx="42" cy="60" r="18"/><circle cx="42" cy="60" r="6" fill="currentColor"/><path d="M60 60h42M92 60v14M78 60v10"/>',
+    vault: '<rect x="20" y="26" width="80" height="68" rx="6"/><circle cx="60" cy="60" r="18"/><path d="M60 42v-6M60 84v6M42 60h-6M84 60h6"/><circle cx="60" cy="60" r="5" fill="currentColor"/>',
+    share: '<circle cx="30" cy="60" r="11"/><circle cx="88" cy="34" r="11"/><circle cx="88" cy="86" r="11"/><path d="M40 55l38-16M40 65l38 16"/>',
+    laptop: '<rect x="26" y="30" width="68" height="46" rx="4"/><path d="M14 84h92l-6 8H20z"/><rect x="52" y="46" width="16" height="14" rx="2" fill="currentColor" opacity=".2"/><path d="M55 46v-4a5 5 0 0110 0v4"/>',
+    balance: '<path d="M60 24v72M34 96h52"/><path d="M24 44h72"/><path d="M24 44l-10 22a10 10 0 0020 0zM96 44l10 22a10 10 0 01-20 0z"/><circle cx="60" cy="38" r="5" fill="currentColor"/>',
+    report: '<path d="M60 22l40 70H20z" fill="currentColor" opacity=".1"/><path d="M60 22l40 70H20z"/><path d="M60 48v22"/><circle cx="60" cy="80" r="3.5" fill="currentColor"/>',
+
+    /* Added because several sections across all three courses named icons that
+       did not exist, and a missing name rendered nothing at all rather than
+       failing visibly. */
+    inbox: '<path d="M20 62l14-34h52l14 34"/><path d="M20 62v26a4 4 0 004 4h72a4 4 0 004-4V62"/><path d="M20 62h24l6 12h20l6-12h24"/>',
+    flag: '<path d="M34 100V22"/><path d="M34 26h50l-10 15 10 15H34z" fill="currentColor" opacity=".14"/><path d="M34 26h50l-10 15 10 15H34z"/><circle cx="34" cy="18" r="4"/>',
+    clock: '<circle cx="60" cy="60" r="38"/><path d="M60 36v26l18 10"/>',
+    folder: '<path d="M18 36a4 4 0 014-4h26l10 12h40a4 4 0 014 4v44a4 4 0 01-4 4H22a4 4 0 01-4-4z" fill="currentColor" opacity=".1"/><path d="M18 36a4 4 0 014-4h26l10 12h40a4 4 0 014 4v44a4 4 0 01-4 4H22a4 4 0 01-4-4z"/>',
+    shield: '<path d="M60 20l34 12v26c0 22-14 34-34 42-20-8-34-20-34-42V32z" fill="currentColor" opacity=".1"/><path d="M60 20l34 12v26c0 22-14 34-34 42-20-8-34-20-34-42V32z"/><path d="M46 60l10 10 20-20"/>',
+    boundary: '<path d="M60 14v92" stroke-dasharray="7 7"/><rect x="16" y="38" width="30" height="44" rx="4"/><rect x="74" y="38" width="30" height="44" rx="4" stroke-dasharray="5 4"/>',
+    eye: '<path d="M12 60s18-27 48-27 48 27 48 27-18 27-48 27-48-27-48-27z"/><circle cx="60" cy="60" r="13"/><circle cx="60" cy="60" r="4.5" fill="currentColor"/>',
+
+    /* Fallback for a name that is not in this set. */
+    dot: '<circle cx="60" cy="60" r="34"/><circle cx="60" cy="60" r="8" fill="currentColor"/>'
+  };
+  function art(name) {
+    if (!name) return '';                     // no icon intended for this section
+    var d = ART[name];
+    if (!d) {
+      // An unknown name used to render nothing at all, so a typo in a course
+      // file silently removed that section's icon and nobody found out. Fall
+      // back to a neutral mark so the heading still lines up, and say so.
+      try { console.warn('Unknown section art name: "' + name + '"'); } catch (e) {}
+      d = ART.dot;
+    }
+    return '<span class="module-mark" aria-hidden="true">' +
+      '<svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="4.5" ' +
+      'stroke-linecap="round" stroke-linejoin="round">' + d + '</svg></span>';
+  }
+
+  /* ------------------------------------------------------------- blocks */
+  function renderBlock(b) {
+    switch (b.type) {
+      case 'lead':    return '<p class="lead">' + inline(b.text) + '</p>';
+      case 'para':    return '<p>' + inline(b.text) + '</p>';
+      case 'heading': return '<h3>' + esc(b.text) + '</h3>';
+      case 'list':
+        return (b.title ? '<p class="list-title">' + esc(b.title) + '</p>' : '') +
+          '<ul>' + b.items.map(function (i) { return '<li><span>' + inline(i) + '</span></li>'; }).join('') + '</ul>';
+      case 'numbered':
+        return '<ol class="numbered">' + b.items.map(function (i) { return '<li><span>' + inline(i) + '</span></li>'; }).join('') + '</ol>';
+      case 'callout':
+        return '<div class="callout ' + esc(b.tone) + '"><div class="ct">' + esc(b.title) + '</div><div class="cb">' + inline(b.text) + '</div></div>';
+      case 'stats':
+        return '<div class="stats">' + b.items.map(function (i) {
+          return '<div><span class="figure">' + esc(i.figure) + '</span><span class="label">' + esc(i.label) + '</span></div>';
+        }).join('') + '</div>';
+      case 'flags':
+        return (b.title ? '<h3>' + esc(b.title) + '</h3>' : '') + '<div class="flags">' + b.items.map(function (i, n) {
+          return '<div class="flag"><span class="fnum">' + (n + 1) + '</span><span><span class="ft">' + esc(i.title) +
+            '</span><br><span class="fb">' + inline(i.text) + '</span></span></div>';
+        }).join('') + '</div>';
+      case 'goodbad':
+        return '<div class="goodbad">' +
+          '<div class="gb is-good"><div class="gbh">' + esc(b.good.title) + '</div><ul>' +
+          b.good.items.map(function (i) { return '<li><span>' + inline(i) + '</span></li>'; }).join('') + '</ul></div>' +
+          '<div class="gb is-bad"><div class="gbh">' + esc(b.bad.title) + '</div><ul>' +
+          b.bad.items.map(function (i) { return '<li><span>' + inline(i) + '</span></li>'; }).join('') + '</ul></div></div>';
+      case 'accessLevels':
+        return '<div class="access">' + b.items.map(function (i) {
+          return '<div class="access-row ' + esc(i.tone) + '"><span class="lvl"><span class="dot"></span>' + esc(i.level) +
+            '</span><span class="txt">' + inline(i.text) + '</span></div>';
+        }).join('') + '</div>';
+      case 'steps':
+        return '<div class="steps-list">' + b.items.map(function (i) {
+          return '<div class="step-item"><span><span class="sit">' + esc(i.title) + '</span><br><span class="sib">' + inline(i.text) + '</span></span></div>';
+        }).join('') + '</div>';
+      case 'mfaMock':      return mfaMock(b);
+      case 'shareMock':    return shareMock(b);
+      case 'pickerMock':   return pickerMock(b);
+      case 'flow':         return flowDiagram(b);
+      case 'clock':        return clockDiagram(b);
+      case 'boundary':     return boundaryDiagram(b);
+      default: return '';
+    }
+  }
+
+
+  /* ------------------------------------------------- interface mock-ups */
+
+  function mfaMock(b) {
+    return '<div class="mock"><div class="phone"><div class="phone-inner">' +
+      '<div class="phone-time"><span>' + esc(b.time || '02:14') + '</span><span>' + esc(b.day || 'Tue') + '</span></div>' +
+      '<div class="push"><div class="push-app"><span class="push-dot"></span>' + esc(b.app || 'Google') + ' · now</div>' +
+      '<div class="push-t">' + esc(b.title) + '</div>' +
+      '<div class="push-b">' + esc(b.body) + '</div>' +
+      '<div class="push-btns"><span class="push-btn">' + esc(b.yes) + '</span>' +
+      '<span class="push-btn no">' + esc(b.no) + '</span></div></div></div></div>' +
+      (b.notes || []).map(function (n, i) {
+        return '<div class="push-note"><span class="pn">' + (i + 1) + '</span><span>' + esc(n) + '</span></div>';
+      }).join('') +
+      (b.caption ? '<div class="mock-cap">' + esc(b.caption) + '</div>' : '') + '</div>';
+  }
+
+  function shareMock(b) {
+    return '<div class="mock"><div class="dlg">' +
+      '<div class="dlg-bar">Share &ldquo;' + esc(b.fileName) + '&rdquo;</div>' +
+      '<div class="dlg-sec"><div class="sec-h"><span class="badge">1</span>' + esc(b.peopleLabel) + '</div>' +
+      b.people.map(function (p) {
+        return '<div class="dlg-person"><span class="avatar">' + esc(p.name.charAt(0)) + '</span>' +
+          '<span><span class="pn">' + esc(p.name) + '</span><br><span class="pe">' + esc(p.email) + '</span></span>' +
+          '<span class="pill' + (p.tone ? ' ' + esc(p.tone) : '') + '">' + esc(p.role) + '</span></div>';
+      }).join('') +
+      '<div class="dlg-note">' + esc(b.peopleNote) + '</div></div>' +
+      '<div class="dlg-sec"><div class="sec-h"><span class="badge">2</span>' + esc(b.accessLabel) + '</div>' +
+      '<div class="dlg-access"><span class="globe">&#9679;</span>' +
+      '<span><span class="pn">' + esc(b.accessValue) + '</span><br><span class="pe">' + esc(b.accessSub) + '</span></span>' +
+      '<span class="pill good">Correct</span></div>' +
+      '<div class="dlg-note">' + esc(b.accessNote) + '</div></div></div>' +
+      (b.caption ? '<div class="mock-cap">' + esc(b.caption) + '</div>' : '') + '</div>';
+  }
+
+  function pickerMock(b) {
+    var bars = {
+      screen: '<i class="w85"></i><i class="w60 leak"></i><i class="w40"></i><i class="w85 leak"></i>',
+      window: '<i class="w85"></i><i class="w60"></i><i class="w40"></i>',
+      tab: '<i class="w60"></i><i class="w85"></i>'
+    };
+    return '<div class="mock"><div class="picker"><div class="picker-h">' + esc(b.title) + '</div>' +
+      '<div class="picker-grid">' + b.tiles.map(function (t) {
+        return '<div class="tile ' + esc(t.tone) + '"><div class="tile-thumb">' + (bars[t.kind] || bars.window) + '</div>' +
+          '<div class="tile-label"><b>' + esc(t.label) + '</b>' +
+          (t.tag ? '<span class="' + (t.tone === 'pick' ? 'tag-good' : 'tag-bad') + '">' + esc(t.tag) + '</span>' : '') +
+          '</div></div>';
+      }).join('') + '</div></div>' +
+      (b.caption ? '<div class="mock-cap">' + esc(b.caption) + '</div>' : '') + '</div>';
+  }
+
+  function flowDiagram(b) {
+    var boxes = b.steps.map(function (s) {
+      return '<div class="flow-box ' + esc(s.tone || '') + '"><span class="flow-k">' + esc(s.kicker) + '</span>' +
+        '<span class="flow-t">' + esc(s.title) + '</span>' +
+        '<span class="flow-b">' + esc(s.body) + '</span></div>';
+    });
+    var html = '';
+    boxes.forEach(function (x, i) {
+      html += x;
+      if (i < boxes.length - 1) html += '<div class="flow-arrow" aria-hidden="true">&rarr;</div>';
+    });
+    return '<div class="mock"><div class="flow">' + html + '</div>' +
+      (b.caption ? '<div class="mock-cap">' + esc(b.caption) + '</div>' : '') + '</div>';
+  }
+
+  function clockDiagram(b) {
+    return '<div class="mock"><div class="clock"><div class="clock-bar"></div>' +
+      '<div class="clock-marks">' + b.marks.map(function (m, i) {
+        return '<div class="clock-mark c' + (i + 1) + '"><span class="cw">' + esc(m.when) + '</span>' +
+          '<span class="cb">' + esc(m.what) + '</span></div>';
+      }).join('') + '</div></div>' +
+      (b.caption ? '<div class="mock-cap">' + esc(b.caption) + '</div>' : '') + '</div>';
+  }
+
+  function boundaryDiagram(b) {
+    function zone(z, cls) {
+      return '<div class="zone ' + cls + '"><span class="zone-h">' + esc(z.title) + '</span>' +
+        '<ul>' + z.items.map(function (i) { return '<li>' + esc(i) + '</li>'; }).join('') + '</ul>' +
+        '<span class="zn">' + esc(z.note) + '</span></div>';
+    }
+    return '<div class="mock"><div class="boundary">' + zone(b.inside, 'in') + zone(b.outside, 'out') + '</div>' +
+      (b.caption ? '<div class="mock-cap">' + esc(b.caption) + '</div>' : '') + '</div>';
+  }
+
+  /* ------------------------------------------------------------ screens */
+  function renderIntro() {
+    var i = T.intro;
+    return '<div class="stage"><section class="hero">' +
+      '<div class="eyebrow">' + esc(O.name) + ' · Required training · v' + esc(T.version) + '</div>' +
+      '<h1>' + esc(T.title) + '</h1>' +
+      '<p class="sub">' + esc(T.subtitle) + '</p>' +
+      '<p class="lead">' + esc(i.lead) + '</p>' +
+      i.body.map(function (p) { return '<p class="lead" style="font-size:16px;color:var(--ink-2);font-weight:400;margin-top:14px">' + esc(p) + '</p>'; }).join('') +
+      '<div class="meta-row">' +
+      '<div class="meta-item"><span class="k">Time</span><span class="v">About ' + T.estimatedMinutes + ' minutes</span></div>' +
+      '<div class="meta-item"><span class="k">Sections</span><span class="v">' + MODS.length + '</span></div>' +
+      '<div class="meta-item"><span class="k">To complete</span><span class="v">' + Math.round(T.passMark * 100) + '% on the final check</span></div>' +
+      '<div class="meta-item"><span class="k">Retakes</span><span class="v">Unlimited</span></div>' +
+      '</div>' +
+      '<ul class="outcomes">' + i.outcomes.map(function (o) {
+        return '<li><span class="tick">→</span><span>' + esc(o) + '</span></li>';
+      }).join('') + '</ul>' +
+      '<div class="notice"><span class="nh">What we record, and why</span><span>' + esc(i.privacyNotice) + '</span></div>' +
+      '<div class="actions"><button class="btn" data-go="next">Start training</button></div>' +
+      '</section></div>';
+  }
+
+  function renderModule(m) {
+    return '<div class="stage">' +
+      '<header class="module-head">' +
+      '<div class="kicker">Section ' + m.number + ' of ' + MODS.length + '</div>' +
+      '<div class="titleline">' + (m.art ? art(m.art) : '') + '<h2>' + esc(m.title) + '</h2></div>' +
+      '<p class="summary">' + esc(m.summary) + '</p>' +
+      '</header>' +
+      '<div class="blocks">' + m.blocks.map(renderBlock).join('') + '</div>' +
+      renderCheck(m.check) +
+      '<div class="actions">' +
+      '<button class="btn" data-go="next" ' + (state.checks[m.check.id] ? '' : 'disabled') + '>' +
+      (m.number === MODS.length ? 'Go to final check' : 'Continue') + '</button>' +
+      (state.checks[m.check.id] ? '' : '<span class="hint">Answer the question above to continue.</span>') +
+      '</div></div>';
+  }
+
+  function renderCheck(c) {
+    var done = state.checks[c.id];
+    var head = '<div class="check"><div class="check-head"><div class="tag">Check your understanding</div>' +
+      '<div class="q">' + esc(c.prompt) + '</div></div><div class="check-body">';
+    if (c.type === 'mcq') return head + renderMcq(c, done) + '</div></div>';
+    if (c.type === 'hotspot') return head + renderHotspot(c, done) + '</div></div>';
+    if (c.type === 'sharingSim') return head + renderSim(c, done) + '</div></div>';
+    if (c.type === 'signinSpot') return head + renderSignin(c, done) + '</div></div>';
+    return head + '</div></div>';
+  }
+
+  function renderMcq(c, done) {
+    var html = c.options.map(function (o, n) {
+      var cls = 'opt';
+      if (done) {
+        if (o.correct) cls += ' correct';
+        else if (done.answer === o.id) cls += ' wrong';
+        else cls += ' dim';
+      }
+      return '<button class="' + cls + '" data-check="' + esc(c.id) + '" data-opt="' + esc(o.id) + '" ' +
+        (done ? 'disabled' : '') + '><span class="key">' + LETTERS[n] + '</span><span>' + esc(o.text) + '</span></button>';
+    }).join('');
+    if (done) {
+      var chosen = c.options.filter(function (o) { return o.id === done.answer; })[0] || {};
+      html += '<div class="feedback ' + (done.correct ? 'ok' : 'no') + '">' +
+        '<span class="fh">' + (done.correct ? 'Correct' : 'Not quite') + '</span>' +
+        '<span class="why">' + inline(chosen.feedback || '') + '</span>' +
+        '<span class="why"><b>Why it matters:</b> ' + inline(c.explain) + '</span></div>';
+    }
+    return html;
+  }
+
+  function renderHotspot(c, done) {
+    var e = c.email;
+    var revealed = !!done;
+    var found = (done && done.found) || state.drafts.hotspot;
+    function hotClass(key) {
+      if (!revealed) return found.indexOf(key) > -1 ? 'hot found' : 'hot';
+      return found.indexOf(key) > -1 ? 'hot found' : 'hot missed';
+    }
+    var senderKey = e.senderHotspot.hotspot;
+    var html = '<div class="mail"><div class="mail-head">' +
+      '<div class="mail-subject">' + esc(e.subject) + '</div>' +
+      '<div class="mail-line"><span class="l">From</span><span class="v">' +
+      '<button class="' + hotClass(senderKey) + ' hot-inline" data-hot="' + esc(senderKey) + '" ' + (revealed ? 'disabled' : '') + '>' +
+      '<span class="name">' + esc(e.fromName) + '</span> &lt;' + esc(e.fromAddress) + '&gt;</button></span></div>' +
+      '<div class="mail-line"><span class="l">To</span><span class="v">' + esc(e.to) + '</span></div>' +
+      '<div class="mail-line"><span class="l">Date</span><span class="v">' + esc(e.received) + '</span></div>' +
+      '</div><div class="mail-body">';
+
+    html += e.body.map(function (p) {
+      if (!p.hotspot) return '<p class="' + (p.text === 'Sent from my iPhone' ? 'sig' : '') + '">' + esc(p.text) + '</p>';
+      return '<button class="' + hotClass(p.hotspot) + '" data-hot="' + esc(p.hotspot) + '" ' + (revealed ? 'disabled' : '') + '>' +
+        esc(p.text) + (revealed ? '<span class="hot-why">' + esc(p.why) + '</span>' : '') + '</button>';
+    }).join('');
+    html += '</div></div>';
+
+    if (revealed) {
+      html = html.replace('<button class="' + hotClass(senderKey) + ' hot-inline" data-hot="' + esc(senderKey) + '" disabled>',
+        '<button class="' + hotClass(senderKey) + ' hot-inline" data-hot="' + esc(senderKey) + '" disabled>');
+      html += '<div class="feedback ' + (done.correct ? 'ok' : 'no') + '">' +
+        '<span class="fh">' + found.length + ' of 5 found</span>' +
+        '<span class="why">' + esc(e.senderHotspot.why) + '</span>' +
+        '<span class="why"><b>Why it matters:</b> ' + inline(c.explain) + '</span></div>';
+    } else {
+      html += '<div class="hot-count"><span data-hotcount>' + found.length + ' of 5 found</span>' +
+        '<button class="btn ghost" data-hotdone="' + esc(c.id) + '" style="padding:7px 14px;font-size:13.5px">' +
+        'I have found them all</button></div>';
+    }
+    return html;
+  }
+
+  /**
+   * The fake sign-in page.
+   *
+   * Two stages in one check. Stage one is spotting: one spot is REQUIRED (the
+   * address) and the rest are credit. That asymmetry is the teaching point, not
+   * a scoring convenience. A logo can be redrawn, a typo can be fixed, a
+   * padlock can be bought; the address is the only part of the page the
+   * attacker does not control. Somebody who finds four cosmetic flaws and
+   * misses the address has learned to spot a careless forgery, which is the
+   * habit that fails them against a careful one.
+   *
+   * Stage two asks what to do once the password is already gone, because that
+   * is the half of the incident that actually determines the damage.
+   *
+   * Nothing here is a form. There are no inputs and no submit: it is a picture
+   * of a sign-in page. A training exercise about credential harvesting should
+   * not contain a working password box.
+   */
+  function renderSignin(c, done) {
+    var pg = c.page;
+    var d = state.drafts.signin;
+    var revealed = !!done || d.stage === 2;
+    var found = (done && done.found) || d.found;
+    var byKey = {};
+    pg.spots.forEach(function (sp) { byKey[sp.key] = sp; });
+
+    function cls(key) {
+      if (!revealed) return found.indexOf(key) > -1 ? 'sgn found' : 'sgn';
+      return found.indexOf(key) > -1 ? 'sgn found' : 'sgn missed';
+    }
+    function spot(key, inner, extra) {
+      return '<button class="' + cls(key) + (extra ? ' ' + extra : '') + '" data-sgn="' + esc(key) + '"' +
+        (revealed ? ' disabled' : '') + '>' + inner +
+        (revealed ? '<span class="sgn-why">' + esc(byKey[key].why) + '</span>' : '') + '</button>';
+    }
+
+    var mark = esc(pg.wordmark).split('').map(function (ch, i) {
+      return '<span class="c' + ((i % 4) + 1) + '">' + ch + '</span>';
+    }).join('');
+
+    var html = '<div class="fakewin">' +
+      '<div class="fakebar"><span class="fakedots"><i></i><i></i><i></i></span>' +
+      '<span class="fakeurl">' +
+        spot('notsecure', '<span class="fake-sec">⚠ ' + esc(pg.securityLabel) + '</span>') + ' ' +
+        spot('url', '<span class="sgn-url">' + esc(pg.urlText) + '</span>') +
+      '</span></div>' +
+      '<div class="fakepage">' +
+        spot('urgency', '<span class="fakebanner">' + esc(pg.banner) + '</span>') +
+        spot('wordmark', '<span class="fakemark">' + mark + '</span>') +
+        '<div class="fakeh">' + esc(pg.heading) + '</div>' +
+        spot('spelling', esc(pg.sub)) +
+        '<div class="fakefield">' + esc(pg.emailValue) + '</div>' +
+        '<div class="fakefield ghost">' + esc(pg.passwordPlaceholder) + '</div>' +
+        '<div class="fakerow"><span class="fakebtn">Next</span></div>' +
+      '</div>' +
+      '<div class="sgn-sim">Simulation. Nothing here is a real form.</div>' +
+      '</div>';
+
+    var required = c.required;
+    var gotRequired = found.indexOf(required) > -1;
+    var bonus = found.filter(function (k) { return k !== required; }).length;
+    var bonusTotal = pg.spots.length - 1;
+
+    if (!revealed) {
+      html += '<div class="sgn-score"><span>' + esc(c.instruction) + '</span>' +
+        '<button class="btn ghost" data-sgndone="' + esc(c.id) + '" style="padding:7px 14px;font-size:13.5px">' +
+        'Done looking</button></div>';
+      return html;
+    }
+
+    html += '<div class="sgn-score"><span>' +
+      (gotRequired ? '✓ You found the address, which is the one that proves it.'
+                   : '✕ You missed the address. That is the one that would have settled it.') +
+      '</span><span>' + bonus + ' of ' + bonusTotal + ' other signs spotted</span></div>';
+
+    var fu = c.followUp;
+    var chosen = (done && done.answer2) || d.answer2;
+    html += '<div class="sgn-stage2"><div class="sgn-q">' + esc(fu.prompt) + '</div>';
+    if (!chosen) {
+      html += '<div class="sgn-opts">' + fu.options.map(function (o, n) {
+        return '<button class="opt" data-sgnopt="' + esc(o.id) + '" data-sgnfor="' + esc(c.id) + '">' +
+          '<span class="key">' + LETTERS[n] + '</span><span>' + esc(o.text) + '</span></button>';
+      }).join('') + '</div>';
+    } else {
+      var picked = fu.options.filter(function (o) { return o.id === chosen; })[0] || {};
+      var right = !!picked.correct;
+      html += '<div class="sgn-opts">' + fu.options.map(function (o, n) {
+        var k = o.correct ? ' correct' : (o.id === chosen ? ' wrong' : ' dim');
+        return '<button class="opt' + k + '" disabled>' +
+          '<span class="key">' + LETTERS[n] + '</span><span>' + esc(o.text) + '</span></button>';
+      }).join('') + '</div>' +
+      '<div class="feedback ' + (right ? 'ok' : 'no') + '">' +
+        '<span class="fh">' + (right ? 'Correct.' : 'Not quite.') + '</span>' +
+        '<span class="why">' + inline(fu.explain) + '</span>' +
+        '<span class="why"><b>Why it matters:</b> ' + inline(c.explain) + '</span></div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderSim(c, done) {
+    var picks = (done && done.picks) || state.drafts.sim;
+    var html = '<div class="sim"><div class="sim-head"><div class="sf">' + esc(c.fileName) + '</div>' +
+      '<div class="sl">Share settings</div></div>';
+    html += c.fields.map(function (f) {
+      return '<div class="sim-field"><div class="fl">' + esc(f.label) + '</div><div class="sim-opts">' +
+        f.options.map(function (o, n) {
+          var cls = 'opt';
+          if (done) {
+            if (o.correct) cls += ' correct';
+            else if (picks[f.id] === o.id) cls += ' wrong';
+            else cls += ' dim';
+          } else if (picks[f.id] === o.id) { cls += ' correct'; }
+          return '<button class="' + cls + '" data-sim="' + esc(c.id) + '" data-field="' + esc(f.id) + '" data-opt="' + esc(o.id) + '" ' +
+            (done ? 'disabled' : '') + '><span class="key">' + LETTERS[n] + '</span><span>' + esc(o.text) + '</span></button>';
+        }).join('') + '</div></div>';
+    }).join('');
+    html += '</div>';
+
+    if (done) {
+      var lines = c.fields.map(function (f) {
+        var o = f.options.filter(function (x) { return x.id === picks[f.id]; })[0];
+        return o ? '<span class="why"><b>' + esc(f.label) + ':</b> ' + inline(o.feedback) + '</span>' : '';
+      }).join('');
+      html += '<div class="feedback ' + (done.correct ? 'ok' : 'no') + '">' +
+        '<span class="fh">' + (done.correct ? 'Correct' : 'Not quite') + '</span>' + lines +
+        '<span class="why"><b>Why it matters:</b> ' + inline(c.explain) + '</span></div>';
+    } else {
+      var ready = c.fields.every(function (f) { return picks[f.id]; });
+      html += '<div class="actions" style="padding-top:14px">' +
+        '<button class="btn ghost" data-simcheck="' + esc(c.id) + '" ' + (ready ? '' : 'disabled') + '>Check my settings</button></div>';
+    }
+    return html;
+  }
+
+  function renderExam() {
+    var f = T.finalExam;
+    var answered = Object.keys(state.exam).length;
+    var html = '<div class="stage"><header class="module-head">' +
+      '<div class="kicker">Final check · ' + f.questions.length + ' questions · ' + Math.round(T.passMark * 100) + '% to pass</div>' +
+      '<h2>' + esc(f.title) + '</h2><p class="summary">' + esc(f.intro) + '</p></header><div style="padding-top:24px">';
+    html += f.questions.map(function (q, n) {
+      return '<div class="exam-q"><div class="qn">Question ' + (n + 1) + ' of ' + f.questions.length + '</div>' +
+        '<div class="qt">' + esc(q.prompt) + '</div><div class="exam-opts">' +
+        q.options.map(function (o, k) {
+          var cls = 'opt' + (state.exam[q.id] === o.id ? ' correct' : '');
+          return '<button class="' + cls + '" data-exam="' + esc(q.id) + '" data-opt="' + esc(o.id) + '">' +
+            '<span class="key">' + LETTERS[k] + '</span><span>' + esc(o.text) + '</span></button>';
+        }).join('') + '</div></div>';
+    }).join('');
+    html += '</div><div class="actions">' +
+      '<button class="btn" data-submit="1" ' + (answered === f.questions.length ? '' : 'disabled') + '>Submit final check</button>' +
+      '<span class="hint">' + answered + ' of ' + f.questions.length + ' answered</span></div></div>';
+    return html;
+  }
+
+  function score() {
+    var qs = T.finalExam.questions;
+    var right = qs.filter(function (q) {
+      var c = q.options.filter(function (o) { return o.correct; })[0];
+      return c && state.exam[q.id] === c.id;
+    }).length;
+    return { right: right, total: qs.length, pct: Math.round((right / qs.length) * 100) };
+  }
+
+  /**
+   * How the closing card tells someone to get in touch.
+   *
+   * The IT ticket form for anything that is an IT matter, because a mailto
+   * lands in one person's inbox and is missed when they are away.
+   *
+   * BUT NOT FOR EVERY COURSE. Safeguarding names the Child Safety Lead, and a
+   * concern about a child must never be routed into the IT queue. So the form
+   * is used only when the course's closing contact IS the support address;
+   * a course naming anybody else keeps its own address.
+   */
+  /**
+   * The school policies, listed after the final check.
+   *
+   * At the END on purpose. A wall of policy links at the start of a course is a
+   * reason to close the tab before the training has said anything; at the end it
+   * is where somebody who now has a question goes next.
+   *
+   * A school with no link yet still gets a line, showing the policy name and
+   * saying the link is coming. Omitting it would read as that school having no
+   * policy, which is a worse thing to imply than an unfinished link.
+   */
+  function policyLinksHtml() {
+    var rows = T.policyLinks || [];
+    if (!rows.length) return '';
+    return '<div style="margin-top:34px">' +
+      '<h3 style="font-family:var(--font-display);font-size:19px;margin-bottom:6px">' +
+      'Your school\u2019s safeguarding policy</h3>' +
+      '<p style="color:var(--ink-2);font-size:14.5px;margin-bottom:14px">' +
+      'This course is the short version. The policy is the complete one, and where they differ the policy wins.</p>' +
+      '<div style="display:flex;flex-direction:column;gap:9px">' +
+      rows.map(function (r) {
+        var label = esc(r.school) + ' \u00b7 ' + esc(r.name);
+        return '<div style="font-size:14.5px">' + (r.url
+          ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">' + label + '</a>'
+          : '<span style="color:var(--muted)">' + label + '</span>') + '</div>';
+      }).join('') + '</div></div>';
+  }
+
+  function closingContact() {
+    var contact = (T.closing && T.closing.contact) || '';
+    var support = (T.links && T.links.itSupportEmail) || '';
+    var form = (T.links && T.links.supportRequest) || '';
+    if (form && contact && support && contact.toLowerCase() === support.toLowerCase()) {
+      return '<a href="' + esc(form) + '" target="_blank" rel="noopener">Log an IT Support Ticket</a>.';
+    }
+    if (contact) {
+      return 'Email <a href="mailto:' + esc(contact) + '">' + esc(contact) + '</a>.';
+    }
+    return '';
+  }
+
+  function renderResult() {
+    var s = score();
+    var passed = (s.right / s.total) >= T.passMark;
+    var circ = 2 * Math.PI * 64;
+    var dash = circ * (s.right / s.total);
+    var html = '<div class="stage-wide"><section class="result">' +
+      '<div class="score-ring"><svg width="148" height="148" viewBox="0 0 148 148">' +
+      '<circle cx="74" cy="74" r="64" fill="none" stroke="var(--line)" stroke-width="9"/>' +
+      (s.right > 0 ? '<circle cx="74" cy="74" r="64" fill="none" stroke="' + (passed ? 'var(--good)' : 'var(--crimson)') + '" stroke-width="9" ' +
+      'stroke-linecap="round" stroke-dasharray="' + dash.toFixed(1) + ' ' + circ.toFixed(1) + '"/>' : '') + '</svg>' +
+      '<div class="val" style="color:' + (passed ? 'var(--good)' : 'var(--crimson-ink)') + '">' + s.pct + '%</div></div>' +
+      '<h2>' + (passed ? 'Training complete' : 'Not quite, have another go') + '</h2>' +
+      '<p class="rsub">' + (passed
+        ? 'You scored ' + s.right + ' out of ' + s.total + '. Your completion has been recorded against your ' + esc(O.name) + ' account.'
+        : 'You scored ' + s.right + ' out of ' + s.total + ' and need ' + Math.ceil(T.passMark * s.total) + ' to complete. Have a look at what you missed below, then retake it. There is no limit and no penalty.') + '</p>';
+
+    if (MODE === 'preview') {
+      html = html.replace('has been recorded against your ' + esc(O.name) + ' account', 'would be recorded here in the live version');
+    }
+
+    html += '<div class="actions" style="justify-content:center">' +
+      (passed ? '' : '<button class="btn" data-retake="1">Retake the final check</button>') +
+      '<button class="btn ghost" data-restart="1">Review the training again</button></div>';
+
+    html += '<div class="review">' + T.finalExam.questions.map(function (q, n) {
+      var c = q.options.filter(function (o) { return o.correct; })[0];
+      var mine = q.options.filter(function (o) { return o.id === state.exam[q.id]; })[0];
+      var ok = c && mine && c.id === mine.id;
+      return '<div class="review-row ' + (ok ? 'ok' : 'no') + '"><span class="mk">' + (ok ? '✓' : '✕') + '</span>' +
+        '<span><span class="rq">' + (n + 1) + '. ' + esc(q.prompt) + '</span>' +
+        (ok ? '' : '<span class="ra">You chose: ' + esc(mine ? mine.text : '-') + '<br>Correct answer: ' + esc(c.text) + '</span>') +
+        '<span class="ra">' + esc(q.explain) + '</span></span></div>';
+    }).join('') + '</div>';
+
+    html += '<h3 style="font-family:var(--font-display);font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin:38px 0 12px;text-align:left">Key takeaways</h3>' +
+      '<ul class="takeaways">' + T.takeaways.map(function (t) { return '<li><span>' + esc(t) + '</span></li>'; }).join('') + '</ul>';
+
+    html += '<div style="text-align:left;margin-top:38px;display:flex;flex-direction:column;gap:14px">' +
+      '<h3 style="font-family:var(--font-display);font-size:22px">' + esc(T.closing.title) + '</h3>' +
+      T.closing.body.map(function (p) { return '<p style="color:var(--ink-2);font-size:15.5px">' + esc(p) + '</p>'; }).join('') +
+      '<div class="callout good"><div class="ct">Any questions, anything suspicious</div><div class="cb">' +
+      closingContact() + ' You will never be in trouble for asking.</div></div>' +
+      policyLinksHtml() + '</div>';
+
+    return html + '</section></div>';
+  }
+
+  /* ---------------------------------------------------------------- nav */
+  function railHtml() {
+    var done = MODS.filter(function (m) { return state.checks[m.check.id]; }).length;
+    var total = MODS.length + 1;
+    var completed = done + (state.examSubmitted ? 1 : 0);
+    var pct = Math.round((completed / total) * 100);
+    var steps = MODS.map(function (m, n) {
+      var isDone = !!state.checks[m.check.id];
+      var reachable = n === 0 || !!state.checks[MODS[n - 1].check.id] || state.idx > n + 1;
+      return '<button class="step' + (isDone ? ' done' : '') + '" data-jump="' + (n + 1) + '" ' +
+        'aria-current="' + (state.idx === n + 1) + '" ' + (reachable ? '' : 'disabled') + '>' +
+        '<span class="num"><span>' + m.number + '</span></span><span>' + esc(m.title) + '</span></button>';
+    }).join('');
+    var examReachable = MODS.every(function (m) { return state.checks[m.check.id]; });
+    steps += '<button class="step' + (state.examSubmitted ? ' done' : '') + '" data-jump="' + LAST + '" ' +
+      'aria-current="' + (state.idx === LAST) + '" ' + (examReachable ? '' : 'disabled') + '>' +
+      '<span class="num"><span>✓</span></span><span>Final check</span></button>';
+
+    /* Only when there is somewhere to go back TO. With one course assigned the
+       picker is never shown, so the link would send someone from the course
+       they are on to the same course again. */
+    var back = (USER && USER.canGoBack && USER.baseUrl)
+      ? '<a class="rail-back" href="' + esc(USER.baseUrl) + '" target="_top">' +
+        '<span class="arrow" aria-hidden="true">\u2190</span>Back to your training</a>'
+      : '';
+
+    /* Admin only, and only once the server has confirmed it. */
+    var admin = '';
+    if (state.admin && state.admin.isAdmin) {
+      admin = '<div class="rail-admin"><span class="lbl">Admin</span>' +
+        '<a class="rail-adm" href="' + esc(state.admin.adminUrl) + '" target="_top">' +
+        '<span class="ic" aria-hidden="true">\u25A6</span>Training dashboard</a>' +
+        (state.admin.sheetUrl
+          ? '<a class="rail-adm" href="' + esc(state.admin.sheetUrl) + '" target="_blank" rel="noopener">' +
+            '<span class="ic" aria-hidden="true">\u2637</span>Results spreadsheet</a>'
+          : '') +
+        '</div>';
+    }
+
+    return '<div class="brandmark"><span class="org">' + esc(O.name) + '</span>' +
+      '<span class="thing">' + esc(T.title) + '</span></div>' + back + admin +
+      '<div class="progress-wrap"><div class="progress-meta"><span>Progress</span><span>' + pct + '%</span></div>' +
+      '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div></div>' +
+      '<nav class="steps">' + steps + '</nav>' +
+      '<div class="rail-foot"><span>Need help, or seen something odd?</span>' +
+      supportLink() +
+      '<span style="opacity:.7">Content version ' + esc(T.version) +
+      (T.updated ? ', updated ' + esc(longDate(T.updated)) : '') + '</span></div>';
+  }
+
+  /* A plain calendar date for the content date. */
+  function longDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  /* The help desk link in the rail.
+     target="_blank" rather than _top on purpose: this page renders in a
+     sandboxed iframe, and sending the top window to the support form would
+     abandon a part-finished course. A new tab leaves their progress alone.
+     Falls back to the support address if no form URL is configured, so the
+     footer is never a dead link. */
+  function supportLink() {
+    var url = T.links && T.links.supportRequest;
+    if (url) {
+      return '<a href="' + esc(url) + '" target="_blank" rel="noopener">Log an IT Support Ticket</a>';
+    }
+    var addr = (T.links && T.links.itSupportEmail) || '';
+    return addr ? '<a href="mailto:' + esc(addr) + '">' + esc(addr) + '</a>' : '';
+  }
+
+  function topbarHtml() {
+    var s = state.examSubmitted ? score() : null;
+    var passed = s && (s.right / s.total) >= T.passMark;
+    var who = MODE === 'live' && USER
+      ? 'Signed in as <b>' + esc(USER.email) + '</b>'
+      : 'Preview mode, nothing is recorded';
+
+    /* Not you? Both links are plain anchors with target="_top". This page runs
+       in a sandboxed iframe where only a real click can move the browser, so
+       nothing here can be done with script. */
+    var swap = '';
+    if (MODE === 'live' && USER && (USER.switchUrl || USER.signOutUrl)) {
+      var bits = [];
+      if (USER.switchUrl) {
+        bits.push('<a href="' + esc(USER.switchUrl) + '" target="_top">Switch account</a>');
+      }
+      if (USER.signOutUrl) {
+        bits.push('<a href="' + esc(USER.signOutUrl) + '" target="_top" ' +
+          'title="Signs you out of every Google service in this browser">Sign out</a>');
+      }
+      swap = '<span class="swap">Not you? ' + bits.join('<span class="sep">·</span>') + '</span>';
+    }
+
+    return '<span class="who">' + who + swap + '</span>' +
+      (s ? '<span class="chip' + (passed ? ' pass' : '') + '">' + (passed ? 'Completed · ' + s.pct + '%' : 'Not yet passed · ' + s.pct + '%') + '</span>'
+         : '<span class="chip">' + T.estimatedMinutes + ' min · v' + esc(T.version) + '</span>');
+  }
+
+  /**
+   * Redraw.
+   *
+   * @param {boolean} inPlace  True when the person answered something on the
+   *   page they are already on, rather than moving to a new one.
+   *
+   * Moving to a new section should start at the top. Answering a question
+   * should not: on a long question the answer buttons are below the fold, so
+   * scrolling to the top would hide the choice they just made and make them
+   * scroll back down to find Continue. Redrawing replaces the DOM, which loses
+   * the scroll position, so it is captured first and restored after.
+   */
+  function render(inPlace) {
+    var y = window.scrollY || window.pageYOffset || 0;
+    el('rail').innerHTML = railHtml();
+    el('topbar').innerHTML = topbarHtml();
+    var body;
+    if (state.idx === 0) body = renderIntro();
+    else if (state.idx <= MODS.length) body = renderModule(MODS[state.idx - 1]);
+    else if (state.idx === LAST) body = renderExam();
+    else body = renderResult();
+    el('view').innerHTML = body;
+
+    if (inPlace) {
+      // Instant, never smooth. A smooth scroll back to where you already were
+      // reads as the page lurching for no reason.
+      window.scrollTo({ top: y, behavior: 'auto' });
+    } else {
+      window.scrollTo({ top: 0, behavior: state.idx === 0 ? 'auto' : 'smooth' });
+    }
+  }
+
+  /* ------------------------------------------------------------- events */
+  document.addEventListener('click', function (ev) {
+    var t = ev.target.closest('button');
+    if (!t) return;
+
+    if (t.dataset.go === 'next') { state.idx = Math.min(state.idx + 1, RESULT); return render(); }
+    if (t.dataset.jump) { state.idx = parseInt(t.dataset.jump, 10); return render(); }
+
+    if (t.dataset.check) {
+      var m = MODS.filter(function (x) { return x.check.id === t.dataset.check; })[0];
+      var opt = m.check.options.filter(function (o) { return o.id === t.dataset.opt; })[0];
+      state.checks[m.check.id] = { answer: opt.id, correct: !!opt.correct, type: 'mcq' };
+      return render(true);
+    }
+
+    if (t.dataset.hot) {
+      var mh = MODS.filter(function (x) { return x.check.type === 'hotspot'; })[0];
+      var cur = state.drafts.hotspot;
+      if (cur.indexOf(t.dataset.hot) === -1) cur.push(t.dataset.hot);
+      state.drafts.hotspot = cur;
+      t.classList.add('found');
+      var counter = document.querySelector('[data-hotcount]');
+      if (counter) counter.textContent = cur.length + ' of 5 found';
+      if (cur.length === 5) { finishHotspot(mh); }
+      return;
+    }
+    if (t.dataset.hotdone) {
+      return finishHotspot(MODS.filter(function (x) { return x.check.id === t.dataset.hotdone; })[0]);
+    }
+
+    if (t.dataset.sim) {
+      var ms = MODS.filter(function (x) { return x.check.id === t.dataset.sim; })[0];
+      
+      state.drafts.sim[t.dataset.field] = t.dataset.opt;
+      var host = el('view');
+      var frag = document.createElement('div');
+      frag.innerHTML = renderCheck(ms.check);
+      host.querySelector('.check').replaceWith(frag.firstChild);
+      return;
+    }
+    if (t.dataset.simcheck) {
+      var mc = MODS.filter(function (x) { return x.check.id === t.dataset.simcheck; })[0];
+      var picks = state.drafts.sim;
+      var allRight = mc.check.fields.every(function (f) {
+        var o = f.options.filter(function (x) { return x.id === picks[f.id]; })[0];
+        return o && o.correct;
+      });
+      state.checks[mc.check.id] = { picks: picks, correct: allRight, type: 'sharingSim', answer: JSON.stringify(picks) };
+      return render(true);
+    }
+
+    /* ---- the fake sign-in check ------------------------------------ */
+    if (t.dataset.sgn) {
+      var sd = state.drafts.signin;
+      var at = sd.found.indexOf(t.dataset.sgn);
+      if (at > -1) sd.found.splice(at, 1); else sd.found.push(t.dataset.sgn);
+      return render(true);                      // in place: the page is below the fold
+    }
+    if (t.dataset.sgndone) {
+      state.drafts.signin.stage = 2;
+      return render(true);
+    }
+    if (t.dataset.sgnopt) {
+      var sc = MODS.filter(function (x) { return x.check.id === t.dataset.sgnfor; })[0];
+      if (!sc) return;
+      var sdd = state.drafts.signin;
+      sdd.answer2 = t.dataset.sgnopt;
+      var opt = sc.check.followUp.options.filter(function (o) { return o.id === sdd.answer2; })[0];
+      // Both halves have to be right. Spotting the address without knowing what
+      // to do next leaves somebody who recognises the trap and then freezes;
+      // knowing what to do without spotting it means they never get the chance.
+      var gotRequired = sdd.found.indexOf(sc.check.required) > -1;
+      state.checks[sc.check.id] = {
+        found: sdd.found,
+        answer2: sdd.answer2,
+        correct: !!(opt && opt.correct) && gotRequired,
+        type: 'signinSpot',
+        answer: sdd.found.join(',') + '|' + sdd.answer2
+      };
+      return render(true);
+    }
+
+    if (t.dataset.exam) { state.exam[t.dataset.exam] = t.dataset.opt; return render(true); }
+    if (t.dataset.submit) { state.examSubmitted = true; state.idx = RESULT; save(); return render(); }
+    if (t.dataset.retake) { state.exam = {}; state.examSubmitted = false; state.saved = false; state.idx = LAST; return render(); }
+    if (t.dataset.restart) { state.idx = 0; return render(); }
+  });
+
+  function finishHotspot(m) {
+    var found = state.drafts.hotspot;
+    state.checks[m.check.id] = { found: found, correct: found.length === 5, type: 'hotspot', answer: found.join(',') };
+    render(true);
+  }
+
+  /* --------------------------------------------------------------- save */
+  function save() {
+    if (MODE !== 'live' || state.saved) return;
+    var s = score();
+    var payload = {
+      // The server re-checks this against the viewer's own catalogue and
+      // re-scores from its own answer key, so naming a course here cannot
+      // earn a pass on one you were never assigned.
+      courseId: (window.APP_USER && window.APP_USER.courseId) || T.id,
+      contentVersion: T.version,
+      startedAt: state.startedAt,
+      finishedAt: new Date().toISOString(),
+      score: s.right,
+      total: s.total,
+      percent: s.pct,
+      passed: (s.right / s.total) >= T.passMark,
+      examAnswers: T.finalExam.questions.map(function (q) {
+        var c = q.options.filter(function (o) { return o.correct; })[0];
+        return { id: q.id, prompt: q.prompt, answer: state.exam[q.id] || '', correct: !!(c && state.exam[q.id] === c.id) };
+      }),
+      moduleAnswers: MODS.map(function (m) {
+        var r = state.checks[m.check.id] || {};
+        return { id: m.check.id, module: m.title, answer: r.answer || '', correct: !!r.correct };
+      })
+    };
+    state.saved = true;
+    try {
+      google.script.run
+        .withFailureHandler(function (err) {
+          state.saved = false;
+          var bar = el('topbar');
+          if (bar) bar.insertAdjacentHTML('beforeend',
+            '<span class="chip" style="color:var(--crimson-ink);border-color:var(--crimson-line)">Not recorded, please email ' +
+            esc(T.links.itSupportEmail) + '</span>');
+          if (window.console) console.error('Training save failed', err);
+        })
+        .withSuccessHandler(function () { if (window.console) console.log('Training result recorded'); })
+        .recordAttempt(payload);
+    } catch (e) {
+      state.saved = false;
+      if (window.console) console.error('google.script.run unavailable', e);
+    }
+  }
+
+  render();
+
+  /* Ask whether this person is an admin, AFTER the first paint. The answer
+     costs a spreadsheet read on the server, so it must not sit in front of the
+     page. If it comes back true the rail re-renders with the links; if it comes
+     back false, fails, or google.script.run is not there at all (preview and
+     the offline test harness), nothing happens and nobody sees anything. */
+  try {
+    google.script.run
+      .withSuccessHandler(function (a) {
+        if (a && a.isAdmin) { state.admin = a; render(true); }
+      })
+      .withFailureHandler(function (err) {
+        if (window.console) console.log('Admin link check skipped', err);
+      })
+      .getAdminRailLinks();
+  } catch (e) {
+    if (window.console) console.log('Admin link check unavailable', e);
+  }
+})();
+
+</script>
+</body>
+</html>

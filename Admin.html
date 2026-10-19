@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Training dashboard, <?= ORG.name ?></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <style>
+/* Example Academies training platform
+   Palette: crimson #7b0b18 is both the brand and the alarm colour. In this
+   subject those are the same thing, so the page spends its single bold colour
+   there and keeps everything else neutral-warm.
+   Type: Archivo for headings, IBM Plex Sans for reading, IBM Plex Mono for
+   anything you are meant to read character by character, such as email addresses,
+   domains, links. That is the lesson, encoded in the typography. */
+
+:root {
+  --crimson: #7b0b18;
+  --crimson-ink: #7b0b18;
+  --crimson-soft: #f7ebec;
+  --crimson-line: #e2c4c8;
+
+  --ground: #faf8f7;
+  --surface: #ffffff;
+  --surface-2: #f3efee;
+  --line: #e4dedd;
+  --line-strong: #cfc7c6;
+
+  --ink: #1a1416;
+  --ink-2: #4a4245;
+  --muted: #6f6669;
+
+  --good: #156b52;
+  --good-soft: #e8f3ef;
+  --good-line: #b9dcd0;
+  --caution: #8a5600;
+  --caution-soft: #fbf1e0;
+  --caution-line: #e6cfa4;
+
+  --on-crimson: #ffffff;
+  --crimson-fill: #7b0b18;
+  --on-fill: #ffffff;
+
+  --radius: 6px;
+  --radius-lg: 10px;
+  --maxw: 68ch;
+
+  --font-display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", Arial, Helvetica, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+
+  --shadow: 0 1px 2px rgba(26, 20, 22, .05), 0 8px 24px -12px rgba(26, 20, 22, .18);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --crimson: #e0687a;
+    --crimson-ink: #f0909e;
+    --crimson-soft: #2c1a1e;
+    --crimson-line: #4d2a30;
+
+    --ground: #141011;
+    --surface: #1c1719;
+    --surface-2: #241e20;
+    --line: #332b2d;
+    --line-strong: #453b3e;
+
+    --ink: #f3efee;
+    --ink-2: #d3caca;
+    --muted: #a1979a;
+
+    --good: #5cc3a0;
+    --good-soft: #16261f;
+    --good-line: #27443a;
+    --caution: #e2a95a;
+    --caution-soft: #2a2114;
+    --caution-line: #4a3a20;
+
+    --on-crimson: #ffffff;
+    --crimson-fill: #d1465d;
+    --on-fill: #ffffff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -12px rgba(0, 0, 0, .7);
+  }
+}
+
+:root[data-theme="dark"] {
+  --crimson: #e0687a;
+  --crimson-ink: #f0909e;
+  --crimson-soft: #2c1a1e;
+  --crimson-line: #4d2a30;
+  --ground: #141011;
+  --surface: #1c1719;
+  --surface-2: #241e20;
+  --line: #332b2d;
+  --line-strong: #453b3e;
+  --ink: #f3efee;
+  --ink-2: #d3caca;
+  --muted: #a1979a;
+  --good: #5cc3a0;
+  --good-soft: #16261f;
+  --good-line: #27443a;
+  --caution: #e2a95a;
+  --caution-soft: #2a2114;
+  --caution-line: #4a3a20;
+  --on-crimson: #ffffff;
+  --crimson-fill: #d1465d;
+  --on-fill: #ffffff;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -12px rgba(0, 0, 0, .7);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -.015em; }
+p { margin: 0; }
+a { color: var(--crimson-ink); text-underline-offset: 3px; }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; border-radius: 3px; }
+
+
+
+.btn { border: 1px solid var(--crimson-fill); background: var(--crimson-fill); color: var(--on-fill);
+  padding: 11px 22px; border-radius: var(--radius); font-family: var(--font-display);
+  font-weight: 600; font-size: 15px; }
+.btn:hover:not(:disabled) { opacity: .88; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: none; color: var(--ink-2); border-color: var(--line-strong); }
+.btn.ghost:hover:not(:disabled) { background: var(--surface-2); }
+
+/* Admin dashboard. Operated, not read: summary before detail, state encoded in
+   form as well as number. Single-series bars, so no legend: the section title
+   names the measure. Example is the one bold colour; status greens and ambers
+   are reserved for pass/fail state and never used as a series colour. */
+
+/* The dashboard now uses the same shell as a course: a fixed rail on the left,
+   content on the right. An admin moving between the two should not feel like
+   they changed product. */
+.adm-shell { display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; }
+.adm-rail {
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  padding: 22px 18px 28px;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.brandmark { display: flex; flex-direction: column; gap: 3px; }
+.brandmark .org {
+  font-family: var(--font-display); font-weight: 700; font-size: 13px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--crimson-ink);
+}
+.brandmark .thing { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+
+.adm-nav { display: flex; flex-direction: column; gap: 1px; }
+.adm-nav .grp {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted); padding: 14px 8px 6px;
+}
+.adm-step {
+  display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start;
+  background: none; border: 0; text-align: left; padding: 8px; border-radius: var(--radius);
+  color: var(--ink-2); font-size: 13.5px; line-height: 1.35; width: 100%; cursor: pointer;
+  font-family: inherit;
+}
+.adm-step:hover { background: var(--surface-2); }
+.adm-step .num {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  border: 1px solid var(--line-strong); border-radius: 4px; height: 20px;
+  display: grid; place-items: center; color: var(--muted); margin-top: 1px;
+}
+.adm-step[aria-current="true"] { background: var(--crimson-soft); color: var(--crimson-ink); font-weight: 600; }
+.adm-step[aria-current="true"] .num { border-color: var(--crimson-fill); color: var(--crimson-ink); }
+
+.rail-foot { margin-top: auto; font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 10px; }
+.rail-foot a { color: var(--muted); }
+.rail-foot .who { font-family: var(--font-mono); font-size: 11px; word-break: break-all; }
+.rail-foot .btn { padding: 7px 14px; font-size: 13px; align-self: flex-start; }
+/* An anchor styled as a button must not also pick up the footer's link
+   underline and muted colour, or it does not match the Refresh button
+   sitting directly above it. */
+.rail-foot a.btn { text-decoration: none; color: var(--ink); }
+
+.adm-main { min-width: 0; padding-top: 26px; }
+.adm { max-width: 1120px; margin: 0 auto; padding: 0 26px 80px; }
+
+/* The training app embedded in the right panel. Fills the viewport height so it
+   behaves like a page rather than a widget in a box. */
+.train-wrap { position: relative; }
+.train-frame { width: 100%; height: calc(100vh - 118px); border: 1px solid var(--line);
+  border-radius: var(--radius-lg); background: var(--surface); display: block; }
+/* The training is a second Apps Script app starting up inside this one, so it
+   takes a few seconds. Without this the panel is simply blank and reads as
+   broken rather than loading. */
+.train-load { position: absolute; inset: 0; display: grid; place-items: center; gap: 12px;
+  border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface);
+  color: var(--muted); font-size: 13.5px; text-align: center; padding: 24px; }
+.train-wrap.ready .train-load { display: none; }
+.spin { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-strong);
+  border-top-color: var(--crimson-ink); animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+.train-note { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap;
+  margin: 0 0 14px; font-size: 13px; color: var(--muted); }
+
+/* ------------------------------------------------------------- admins */
+.adm-add { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 20px; }
+.adm-add input { flex: 1 1 280px; min-width: 0; }
+.people { border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface); }
+.person { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(0,1.6fr) 150px 120px 34px;
+  gap: 14px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.person:last-child { border-bottom: 0; }
+.person.head { background: var(--surface-2); font-family: var(--font-mono); font-size: 10.5px;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.person .nm { font-weight: 600; }
+.person .em { font-family: var(--font-mono); font-size: 12px; color: var(--muted); word-break: break-all; }
+.person .rl { font-size: 12.5px; color: var(--muted); }
+.person .dt { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.kill { background: none; border: 1px solid var(--line); color: var(--crimson-ink);
+  width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 15px; line-height: 1;
+  display: grid; place-items: center; padding: 0; font-family: inherit; }
+.kill:hover { background: var(--crimson-soft); border-color: var(--crimson-line); }
+.kill[disabled] { opacity: .28; cursor: default; }
+.person.is-gone .nm, .person.is-gone .em { opacity: .6; }
+.person.is-gone .nm { font-weight: 400; text-decoration: line-through; }
+.adm-msg { margin: 0 0 16px; font-size: 13px; padding: 11px 14px; border-radius: var(--radius); }
+.adm-msg.bad { background: var(--crimson-soft); border: 1px solid var(--crimson-line); color: var(--crimson-ink); }
+.adm-msg.ok { background: var(--good-soft); border: 1px solid var(--good-line); color: var(--good); }
+@media (max-width: 760px) {
+  .person { grid-template-columns: minmax(0,1fr) 34px; gap: 6px; }
+  .person.head { display: none; }
+  .person .rl, .person .dt { grid-column: 1; }
+}
+
+.adm h2 {
+  font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700;
+  color: var(--ink); margin: 34px 0 13px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+}
+.adm h2:first-of-type { margin-top: 0; }
+
+/* stat tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+.tile-s { background: var(--surface); padding: 16px 18px; display: flex; flex-direction: column; gap: 3px; }
+.tile-s .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tile-s .v { font-family: var(--font-display); font-weight: 700; font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tile-s .s { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+.tile-s.hero .v { color: var(--crimson-ink); font-size: 34px; }
+.tile-s.ok .v { color: var(--good); }
+.tile-s.warn .v { color: var(--caution); }
+
+/* meter */
+.meter { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: 18px 20px; display: flex; flex-direction: column; gap: 11px; }
+.meter-top { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; }
+.meter-top .mv { font-family: var(--font-display); font-weight: 700; font-size: 30px; font-variant-numeric: tabular-nums; color: var(--good); }
+.meter-top .ms { font-size: 13.5px; color: var(--muted); }
+.meter-track { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.meter-fill { height: 100%; background: var(--good); border-radius: 99px; transition: width .4s cubic-bezier(.4,0,.2,1); }
+
+/* ranked horizontal bars: single series, value direct-labelled at the end */
+.bars { display: flex; flex-direction: column; gap: 2px; }
+.bar-row { display: grid; grid-template-columns: minmax(0, 1fr) 34% 62px; gap: 16px; align-items: center; padding: 7px 0; border-radius: var(--radius); }
+.bar-row:hover { background: var(--surface-2); }
+/* One line, always. A two-line row makes the list of twelve read as a wall of
+   text rather than a ranking, and the bars stop lining up. The full question is
+   in the hover tooltip. */
+.bar-label { font-size: 13.5px; color: var(--ink-2); line-height: 1.35; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { display: block; height: 15px; background: var(--surface-2); border-radius: 4px; box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+.bar-fill { display: block; height: 100%; background: var(--crimson-fill); border-radius: 0 4px 4px 0; min-width: 3px; transition: width .35s ease; }
+.bar-val { font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; }
+.bar-val .sub { display: block; font-size: 10.5px; color: var(--muted); }
+
+/* group rows (business unit / team) */
+.groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.group-card { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface);
+  overflow: hidden; display: flex; flex-direction: column; height: 340px; }
+/* The list scrolls inside the panel, so a department list of any length leaves
+   the two panels the same height and does not push the page around. */
+.group-body { overflow-y: auto; overscroll-behavior: contain; flex: 1 1 auto; }
+.group-body::-webkit-scrollbar { width: 10px; }
+.group-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px;
+  border: 3px solid var(--surface); }
+.group-card h3 .count { float: right; font-weight: 400; letter-spacing: .04em; text-transform: none; }
+.group-card h3 { font-family: var(--font-display); font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; font-weight: 700; color: var(--muted); padding: 13px 16px; border-bottom: 1px solid var(--line); margin: 0; flex: 0 0 auto; }
+.group-row { display: grid; grid-template-columns: minmax(0,1fr) 96px 66px; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.group-row:last-child { border-bottom: 0; }
+.group-row .gn { font-size: 13.5px; min-width: 0; }
+.group-row .gn .sub { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.group-row .gt { display: block; height: 7px; background: var(--surface-2); border-radius: 99px; box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+.group-row .gf { display: block; height: 100%; background: var(--good); border-radius: 99px; }
+.group-row .gv { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* filter row + table */
+.left-head { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--muted); margin: 30px 0 10px; display: flex; align-items: baseline; gap: 10px; }
+.left-head span { font-family: var(--font-body); font-size: 13px; font-weight: 400; letter-spacing: 0;
+  text-transform: none; }
+tr.is-left td { opacity: .72; }
+.filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.search {
+  flex: 1 1 260px; min-width: 200px; padding: 9px 13px; font: inherit; font-size: 14px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  background: var(--surface); color: var(--ink);
+}
+.search::placeholder { color: var(--muted); }
+.seg { display: flex; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; }
+.seg button { background: var(--surface); border: 0; padding: 9px 15px; font-size: 13px; color: var(--ink-2); border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--crimson-soft); color: var(--crimson-ink); font-weight: 600; }
+
+.tbl-wrap { border: 1px solid var(--line); border-radius: var(--radius-lg); overflow-x: auto; background: var(--surface); }
+table.tbl { border-collapse: collapse; width: 100%; min-width: 780px; }
+table.tbl th {
+  text-align: left; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); font-weight: 700; padding: 11px 14px; border-bottom: 1px solid var(--line);
+  background: var(--surface-2); white-space: nowrap; position: sticky; top: 0;
+}
+table.tbl td { padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: top; }
+table.tbl tr:last-child td { border-bottom: 0; }
+table.tbl tr:hover td { background: var(--surface-2); }
+table.tbl .mono { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+/* Numeric cells keep the mono face and tabular figures so digits line up down
+   the column, but they sit on the same left edge as every other column. A
+   right aligned number under a left aligned heading reads as a value that has
+   slipped into the wrong column, and none of these are magnitudes anyone
+   compares by length. Scoped to td deliberately: as a bare .num this also hit
+   the header cells, which is why Attempt, Score and Time rendered larger, and
+   in the mono face, than the headings either side of them. */
+table.tbl td.num { font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+.state { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+.state::before { content: ""; width: 6px; height: 6px; border-radius: 99px; background: currentColor; }
+.state.pass { color: var(--good); background: var(--good-soft); border: 1px solid var(--good-line); }
+.state.fail { color: var(--crimson-ink); background: var(--crimson-soft); border: 1px solid var(--crimson-line); }
+
+.empty { border: 1px dashed var(--line-strong); border-radius: var(--radius-lg); padding: 30px 24px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.5; background: var(--surface); }
+.empty b { color: var(--ink); font-weight: 600; display: block; margin-bottom: 5px; font-family: var(--font-display); font-size: 15px; }
+.empty code { font-family: var(--font-mono); font-size: 12.5px; background: var(--surface-2); padding: 2px 6px; border-radius: 4px; color: var(--ink-2); }
+
+.tip {
+  position: fixed; pointer-events: none; z-index: 60; opacity: 0; transition: opacity .12s;
+  background: var(--ink); color: var(--ground); font-size: 12.5px; line-height: 1.4;
+  padding: 7px 10px; border-radius: var(--radius); max-width: 280px; box-shadow: var(--shadow);
+}
+.tip.on { opacity: 1; }
+.tip .tw { font-family: var(--font-mono); font-size: 11.5px; opacity: .8; display: block; }
+
+.adm-foot { margin-top: 34px; font-size: 12.5px; color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap; }
+.adm-foot a { color: var(--crimson-ink); }
+
+@media (max-width: 900px) {
+  .adm-shell { grid-template-columns: 1fr; }
+  .adm-rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+  .adm-main { padding-top: 18px; }
+  .train-frame { height: 70vh; }
+  .rail-foot { margin-top: 14px; }
+}
+@media (max-width: 700px) {
+  .bar-row { grid-template-columns: minmax(0,1fr) 90px 56px; gap: 10px; }
+  .adm { padding-left: 16px; padding-right: 16px; }
+}
+
+  </style>
+</head>
+<body>
+
+<div class="adm-shell">
+  <aside class="adm-rail">
+    <div class="brandmark">
+      <!-- From ORG.name, never typed. This page is served by two deployments
+           in two Workspaces and both must say the same thing. -->
+      <span class="org"><?= ORG.name ?></span>
+      <span class="thing">Training dashboard</span>
+    </div>
+    <nav class="adm-nav" id="adm-nav" aria-label="Dashboard sections"></nav>
+    <div class="rail-foot">
+      <button class="btn ghost" id="refresh">Refresh</button>
+      <!-- The raw results workbook. Populated from sheetUrl in render(); stays
+           hidden if the sheet id is not configured, so it is never a dead link.
+           New tab rather than _top: this page lives in a sandboxed iframe and
+           sending the top window to Sheets would throw away the dashboard. -->
+      <a class="btn ghost" id="adm-sheet" href="#" target="_blank" rel="noopener" hidden>Results spreadsheet</a>
+      <div>Need help, or seen something odd?<br><a id="adm-support" href="#"></a></div>
+      <span class="who" id="adm-who"></span>
+    </div>
+  </aside>
+  <main class="adm-main"><div class="adm" id="adm-body"></div></main>
+</div>
+<script>
+  window.ADMIN_MODE = 'live';
+  window.ADMIN_BOOT = <?!= bootJson ?>;
+</script>
+<script>
+/* Admin dashboard, client.
+   Expects ADMIN_MODE ('live' | 'preview'), and in preview mode ADMIN_DATA. */
+(function () {
+  'use strict';
+
+  var MODE = window.ADMIN_MODE || 'preview';
+
+  /* full  = the whole server payload, which carries every course
+     data  = the flattened view of the course currently selected
+     One load, then switching course is a re-render against data already in the
+     page. It used to be a full server round trip to change a filter, which
+     costs a few seconds however little work sits at the other end. */
+  /* full starts as the bootstrap payload rather than null, so the rail and the
+     training view can be drawn on the first frame. getAdminData then fills in
+     the course figures underneath. */
+  var state = { full: window.ADMIN_BOOT || null, data: null, q: '', filter: 'all', course: '',
+                view: 'training', admins: null, adminMsg: '', adminMsgKind: '', adminBusy: false };
+
+  /* The flat shape every render function below already expects: the shared
+     fields with the selected course's own figures laid over the top. Falls back
+     to the payload as-is when there is no byCourse block, so a page served by an
+     older deployment still renders rather than breaking. */
+  function viewOf(payload, courseId) {
+    if (!payload || !payload.byCourse || !payload.byCourse[courseId]) return payload;
+    var out = {};
+    Object.keys(payload).forEach(function (k) { if (k !== 'byCourse') out[k] = payload[k]; });
+    var block = payload.byCourse[courseId];
+    Object.keys(block).forEach(function (k) { out[k] = block[k]; });
+    out.selected = courseId;
+    return out;
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function el(id) { return document.getElementById(id); }
+  function pct(n) { return (n == null ? 0 : n) + '%'; }
+
+  /* A plain calendar date, for the content date. Deliberately not when(),
+     which is relative ("Today 09:41") and right for a timestamp but wrong for
+     "this course was last edited on". */
+  function longDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  /* Which local calendar day a moment falls on, as a day number. Elapsed hours
+     cannot answer that: 23:40 last night is 40 minutes ago at 00:20 but it is
+     still yesterday, and an hour of that difference disappears on a daylight
+     saving change. Comparing the local Y/M/D is exact in both cases. */
+  function localDay(d) {
+    return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+  }
+
+  /* The server sends every timestamp as an ISO instant, which carries no time
+     zone opinion of its own, and it is formatted here in the browser. So an
+     admin always reads these in their own local time, whatever time zone the
+     script, the spreadsheet or the person who sat the course were in. */
+  function when(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d)) return '';
+    var days = localDay(new Date()) - localDay(d);
+    var time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (days === 0) return 'Today ' + time;
+    if (days === 1) return 'Yesterday ' + time;
+    return d.toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' ' + time;
+  }
+
+  /* ------------------------------------------------------------- sections */
+
+  /* A content version, written the way the course declares it.
+
+     Sheets stores '3.0' as the number 3, so the column ends up showing "3"
+     directly above "3.1", which reads like two different kinds of value rather
+     than two versions of one course. Put the .0 back for display. This is
+     presentation only: sameVersion_ on the server already treats 3 and '3.0'
+     as the same version, so nothing is being reinterpreted here. */
+  function ver(v) {
+    var s = String(v == null ? '' : v).trim();
+    if (!s) return '';
+    return /^\d+$/.test(s) ? s + '.0' : s;
+  }
+
+  /* What "passed" counts as, spelled out under the hero tile. These figures are
+     about compliance, so the recertification window is the thing that qualifies
+     a pass, not the content version it was sat on. */
+  function passWindow(d) {
+    var m = Number(d.recertifyMonths) || 0;
+    if (!m) return 'no renewal required';
+    if (m === 12) return 'in the last 12 months';
+    return 'in the last ' + m + ' months';
+  }
+
+  function tiles(d) {
+    var t = d.totals;
+    var items = [
+      { k: 'People passed', v: t.peoplePassed, s: passWindow(d), cls: 'hero' },
+      { k: 'Started, not passed', v: t.peopleFailing, s: t.peopleFailing ? 'may need a nudge' : 'nobody stuck', cls: t.peopleFailing ? 'warn' : 'ok' },
+      { k: 'Attempts', v: t.attempts, s: 'retakes included' },
+      { k: 'Average score', v: pct(t.avgScore), s: 'pass mark ' + pct(t.passMark), cls: t.avgScore >= t.passMark ? 'ok' : 'warn' },
+      { k: 'Passed first time', v: pct(t.firstAttemptPass), s: 'of first attempts' },
+      { k: 'Median time', v: t.medianMinutes ? t.medianMinutes + ' min' : '-', s: 'start to finish' }
+    ];
+    return '<div class="tiles">' + items.map(function (i) {
+      return '<div class="tile-s ' + (i.cls || '') + '"><span class="k">' + esc(i.k) + '</span>' +
+        '<span class="v">' + esc(i.v) + '</span><span class="s">' + esc(i.s) + '</span></div>';
+    }).join('') + '</div>';
+  }
+
+  function completion(d) {
+    if (!d.hasRoster) {
+      return '<div class="empty"><b>No roster loaded yet</b>' +
+        'Completion against headcount needs the staff list. Run <code>refreshRoster(true)</code> ' +
+        'in the Apps Script editor and this becomes a percentage of the organisation. ' +
+        'Everything else on this page works without it.</div>';
+    }
+    var r = d.roster;
+    return '<div class="meter"><div class="meter-top">' +
+      '<span class="mv">' + pct(r.percent) + '</span>' +
+      '<span class="ms">' + r.completed + ' of ' + r.total + ' staff · ' + r.outstanding + ' outstanding</span>' +
+      '</div><div class="meter-track"><div class="meter-fill" style="width:' + r.percent + '%"></div></div></div>' +
+      '<div class="groups" style="margin-top:18px">' +
+      groupCard('By school', r.bySchool) + '</div>';
+  }
+
+  function groupCard(title, rows) {
+    if (!rows || !rows.length) return '';
+    return '<div class="group-card"><h3>' + esc(title) +
+      '<span class="count">' + rows.length + '</span></h3><div class="group-body">' +
+      rows.map(function (g) {
+        return '<div class="group-row"><span class="gn">' + esc(g.name) +
+          (g.sub ? '<span class="sub">' + esc(g.sub) + '</span>' : '') + '</span>' +
+          '<span class="gt"><span class="gf" style="width:' + g.percent + '%"></span></span>' +
+          '<span class="gv">' + g.done + '/' + g.total + '</span></div>';
+      }).join('') + '</div></div>';
+  }
+
+  function missed(d) {
+    if (!d.missed.length) {
+      return '<div class="empty"><b>Nothing answered yet</b>' +
+        'Once people start completing the training, the questions they get wrong most often appear here.</div>';
+    }
+    var max = Math.max.apply(null, d.missed.map(function (m) { return m.pct; })) || 1;
+    return '<div class="bars">' + d.missed.map(function (m) {
+      return '<div class="bar-row" data-tip="' + esc(m.wrong + ' of ' + m.seen + ' answers wrong') + '">' +
+        '<span class="bar-label">' + esc(m.label) + '</span>' +
+        '<span class="bar-track"><span class="bar-fill" style="width:' + Math.max(2, (m.pct / max) * 100) + '%"></span></span>' +
+        '<span class="bar-val">' + m.pct + '%<span class="sub">' + m.wrong + '/' + m.seen + '</span></span></div>';
+    }).join('') + '</div>' +
+    '<p style="font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5">' +
+    'A question most people get wrong usually means the section explains it badly. ' +
+    'Rewrite the material before chasing the people.</p>';
+  }
+
+  /**
+   * Attempts, split into current staff and people who have left.
+   *
+   * Current staff come first with no label, because they are the normal case
+   * and labelling the normal case is noise. Leavers go below under a heading,
+   * so their completions still count as evidence without sitting in the middle
+   * of the list of people you might actually chase.
+   */
+  function table(d) {
+    var rows = d.recent.filter(function (r) {
+      if (state.filter === 'pass' && r.result !== 'PASS') return false;
+      if (state.filter === 'fail' && r.result === 'PASS') return false;
+      if (!state.q) return true;
+      var hay = (r.email + ' ' + r.name + ' ' + r.team).toLowerCase();
+      return hay.indexOf(state.q.toLowerCase()) > -1;
+    });
+
+    if (!rows.length) {
+      return '<div class="empty"><b>' + (d.recent.length ? 'Nothing matches that filter' : 'No attempts recorded yet') + '</b>' +
+        (d.recent.length ? 'Try a different search.' : 'The first completed attempt will appear here within seconds.') + '</div>';
+    }
+
+    var current = rows.filter(function (r) { return !r.left; });
+    var leavers = rows.filter(function (r) { return r.left; });
+
+    return (current.length ? tableBlock(current) : '') +
+      (leavers.length
+        ? '<h3 class="left-head">Left <span>' + leavers.length +
+          (leavers.length === 1 ? ' attempt by someone no longer in the staff group'
+                                : ' attempts by people no longer in the staff group') + '</span></h3>' +
+          tableBlock(leavers)
+        : '') +
+      '<p style="font-size:12.5px;color:var(--muted);margin-top:10px">Showing ' + rows.length +
+      ' of the ' + d.recent.length + ' most recent attempts' +
+      (leavers.length ? ', ' + leavers.length + ' of them by people who have left' : '') + '.</p>';
+  }
+
+  function tableBlock(rows) {
+    return '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
+      '<th>When</th><th>Person</th><th>School</th><th>Version</th><th>Attempt</th>' +
+      '<th>Score</th><th>Time</th><th>Result</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        return '<tr' + (r.left ? ' class="is-left"' : '') + '><td class="mono">' + esc(when(r.when)) + '</td>' +
+          '<td>' + (r.name ? esc(r.name) + '<br>' : '') + '<span class="mono" style="color:var(--muted)">' + esc(r.email) + '</span></td>' +
+          '<td>' + esc(r.team || 'not set') + '</td>' +
+          '<td class="mono">' + esc(ver(r.version)) + '</td>' +
+          '<td class="num">' + r.attempt + '</td>' +
+          '<td class="num">' + r.score + '/' + r.total + ' &middot; ' + r.percent + '%</td>' +
+          '<td class="num">' + (r.minutes ? r.minutes + 'm' : 'n/a') + '</td>' +
+          '<td><span class="state ' + (r.result === 'PASS' ? 'pass' : 'fail') + '">' + esc(r.result) + '</span></td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  /* ---------------------------------------------------------------- render */
+
+  /* The rail. One entry for the training itself, then one per course, built
+     from the catalogue rather than hardcoded, so a fourth course appears here
+     the moment it is registered. Figures stay per course throughout: a blended
+     number across three courses hides the thing you actually need to see,
+     which is which course people are not doing. */
+  function railNav(full) {
+    var courses = (full && full.courses) || [];
+    var html = '<button class="adm-step" data-view="training" aria-current="' +
+      (state.view === 'training') + '">' +
+      '<span class="num">' + ICON_PLAY + '</span><span>Open the training</span></button>';
+    if (courses.length) html += '<div class="grp">Courses</div>';
+    courses.forEach(function (c, i) {
+      var on = (state.view === 'course' && c.id === state.course);
+      html += '<button class="adm-step" data-view="course" data-course="' + esc(c.id) +
+        '" aria-current="' + on + '">' +
+        '<span class="num">' + (i + 1) + '</span><span>' + esc(c.title) + '</span></button>';
+    });
+    // Only offered to someone who can actually use it.
+    if (full && full.canManageAdmins) {
+      html += '<div class="grp">Access</div>' +
+        '<button class="adm-step" data-view="admins" aria-current="' + (state.view === 'admins') + '">' +
+        '<span class="num">' + ICON_PERSON + '</span><span>Administrators</span></button>';
+    }
+    return html;
+  }
+
+  var ICON_PERSON = '<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" ' +
+    'aria-hidden="true"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-7 2-7 4.5V20h14v-1.5C19 16 16 14 12 14z"/></svg>';
+
+  /* Who can open this dashboard. Loaded separately from the course figures
+     because it changes on a different rhythm and should not make the main
+     payload heavier for the other views. */
+  var ICON_PLAY = '<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" ' +
+    'aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>';
+
+  /* The training app itself, embedded. Same deployment the staff use, so an
+     admin is looking at exactly what they are looking at, not a preview of it. */
+  function trainingView(full) {
+    var url = full && full.webAppUrl;
+    if (!url) {
+      return '<h2>Open the training</h2><div class="empty"><b>The training URL is not set</b>' +
+        'Set the WEB_APP_URL script property to this deployment\u2019s /exec address, then refresh.</div>';
+    }
+    return '<h2>The training</h2>' +
+      '<p class="train-note"><span>This is the live site, exactly as staff see it.</span>' +
+      '<a href="' + esc(url) + '" target="_top" data-open-training="' + esc(url) +
+      '">Open it full screen</a></p>' +
+      '<div class="train-wrap" id="train-wrap">' +
+      '<iframe class="train-frame" id="train-frame" src="' + esc(url) + '" title="Training"></iframe>' +
+      '<div class="train-load"><div><div class="spin"></div>' +
+      '<p style="margin:12px 0 0">Starting the training\u2026</p>' +
+      '<p style="margin:4px 0 0;font-size:12.5px">It runs as its own app, so the first load takes a moment.</p>' +
+      '</div></div></div>';
+  }
+
+  function adminsView() {
+    var a = state.admins;
+    if (!a) return '<h2>Administrators</h2><div class="empty"><b>Loading\u2026</b>Fetching the list.</div>';
+
+    var msg = state.adminMsg
+      ? '<div class="adm-msg ' + esc(state.adminMsgKind || 'bad') + '">' + esc(state.adminMsg) + '</div>' : '';
+
+    function row(p, removed) {
+      var cross = removed
+        ? ''
+        : (p.removable
+            ? '<button class="kill" data-remove="' + esc(p.email) + '" title="Remove access" ' +
+              'aria-label="Remove ' + esc(p.email) + '">\u00d7</button>'
+            : '<button class="kill" disabled title="' +
+              (p.role === 'owner' ? 'The script owner always has access' : 'You cannot remove your own access') +
+              '">\u00d7</button>');
+      return '<div class="person' + (removed ? ' is-gone' : '') + '">' +
+        '<span class="nm">' + esc(p.name || '(name not set)') + '</span>' +
+        '<span class="em">' + esc(p.email) + '</span>' +
+        '<span class="rl">' + esc(p.roleLabel) + '</span>' +
+        '<span class="dt">' + esc(when(removed ? p.removedOn : p.addedOn)) + '</span>' +
+        cross + '</div>';
+    }
+
+    var html = '<h2>Administrators</h2>' + msg +
+      '<div class="adm-add">' +
+      '<input class="search" id="new-admin" type="email" placeholder="' +
+        esc('name@' + ((ADMIN_BOOT.supportEmail || '@example.org').split('@')[1] || 'example.org')) + '" ' +
+      'autocomplete="off" spellcheck="false">' +
+      '<button class="btn" id="add-admin">Add administrator</button></div>' +
+      '<div class="people">' +
+      '<div class="person head"><span>Name</span><span>Email</span><span>Role</span><span>Added</span><span></span></div>' +
+      a.admins.map(function (p) { return row(p, false); }).join('') + '</div>';
+
+    // Kept and shown rather than deleted, so there is a standing record of who
+    // had access and when it was withdrawn.
+    if (a.removed && a.removed.length) {
+      html += '<h2>No longer has access</h2>' +
+        '<div class="people">' +
+        '<div class="person head"><span>Name</span><span>Email</span><span>Role</span><span>Removed</span><span></span></div>' +
+        a.removed.map(function (p) { return row(p, true); }).join('') + '</div>' +
+        '<p class="train-note" style="margin-top:12px">Adding one of these addresses again reactivates ' +
+        'the same row, so the original date they were first granted access is not lost.</p>';
+    }
+
+    html += '<p class="train-note" style="margin-top:14px">Access is withdrawn immediately. ' +
+      'Anyone whose Google account stops being active is automatically removed each night.</p>';
+    return html;
+  }
+
+  function render() {
+    var d = state.data;
+    var full = state.full || {};
+    el('adm-who').textContent = (d && d.viewer) || full.viewer || '';
+    el('adm-nav').innerHTML = railNav(full);
+
+
+    var sheet = el('adm-sheet');
+    if (sheet) {
+      if (full.sheetUrl) { sheet.href = full.sheetUrl; sheet.hidden = false; }
+      else { sheet.hidden = true; }
+    }
+
+    var sup = el('adm-support');
+    if (sup) {
+      var form = full.supportRequestUrl;
+      if (form) { sup.textContent = 'Log an IT Support Ticket'; sup.href = form; sup.target = '_blank'; sup.rel = 'noopener'; }
+      else { sup.textContent = full.supportEmail || ''; sup.href = full.supportEmail ? 'mailto:' + full.supportEmail : '#'; }
+    }
+
+    if (state.view === 'training') {
+      el('adm-body').innerHTML = trainingView(full);
+      var fr = el('train-frame');
+      if (fr) fr.addEventListener('load', function () {
+        var w = el('train-wrap');
+        if (w) w.className = 'train-wrap ready';
+      });
+      return;
+    }
+
+    if (state.view === 'admins') {
+      el('adm-body').innerHTML = adminsView();
+      var inp = el('new-admin');
+      if (inp) inp.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); submitAdmin(); }
+      });
+      return;
+    }
+
+    el('adm-body').innerHTML =
+      '<h2>' + esc(d.courseTitle) + '</h2>' + tiles(d) +
+      '<h2>Completion across the organisation</h2>' + completion(d) +
+      '<h2>Questions people get wrong most often</h2>' + missed(d) +
+      '<h2>Recent attempts</h2>' +
+      '<div class="filters">' +
+      '<input class="search" id="q" type="search" placeholder="Search by name, email or school" value="' + esc(state.q) + '">' +
+      '<div class="seg" role="group" aria-label="Filter by result">' +
+      ['all', 'pass', 'fail'].map(function (f) {
+        return '<button data-filter="' + f + '" aria-pressed="' + (state.filter === f) + '">' +
+          (f === 'all' ? 'All' : f === 'pass' ? 'Passed' : 'Not passed') + '</button>';
+      }).join('') + '</div></div>' +
+      '<div id="tbl">' + table(d) + '</div>' +
+      '<div class="adm-foot">' +
+      // Two different dates that were being conflated. The content date is when
+      // the course was last edited; the other is simply when this page fetched
+      // its figures, which is why every course used to read as updated today.
+      '<span>Content version ' + esc(d.version) +
+      (d.contentUpdated ? ', updated ' + esc(longDate(d.contentUpdated)) : '') + '</span>' +
+      '<span>Figures as at ' + esc(when(d.generated)) + '</span></div>';
+
+    var q = el('q');
+    if (q) {
+      q.addEventListener('input', function () {
+        state.q = q.value;
+        el('tbl').innerHTML = table(state.data);
+      });
+    }
+  }
+
+  document.addEventListener('click', function (ev) {
+    // This page renders inside a sandboxed iframe on googleusercontent.com.
+    // target="_top" is honoured in most cases but not all, and when it is not,
+    // the link loads the app INSIDE the sandbox frame and lands on
+    // userCodeAppPanel, which goes nowhere. Driving window.top directly is the
+    // only form that always breaks out. The href stays on the anchor so
+    // middle-click and copy-link still work.
+    var t = ev.target.closest('[data-open-training]');
+    if (t) {
+      var url = t.getAttribute('data-open-training');
+      if (url) {
+        ev.preventDefault();
+        try { window.top.location.href = url; }
+        catch (e) { window.open(url, '_blank', 'noopener'); }
+        return;
+      }
+    }
+    if (ev.target.closest('#add-admin')) { ev.preventDefault(); return submitAdmin(); }
+
+    var rm = ev.target.closest('[data-remove]');
+    if (rm && !rm.disabled) {
+      var addr = rm.getAttribute('data-remove');
+      // Withdrawing access is not reversible from the other person's side, so it
+      // asks once. Confirm is safe here: this page is not inside a nested frame.
+      if (!window.confirm('Remove dashboard access for ' + addr + '?')) return;
+      return callAdmins('removeAdmin', addr, 'Removed ' + addr + '.');
+    }
+
+    var nav = ev.target.closest('[data-view]');
+    if (nav) {
+      if (nav.dataset.view === 'training') {
+        if (state.view === 'training') return;
+        state.view = 'training';
+        return render();
+      }
+      if (nav.dataset.view === 'admins') {
+        if (state.view === 'admins') return;
+        state.view = 'admins';
+        state.adminMsg = '';
+        render();
+        if (!state.admins) callAdmins('listAdmins', null, '');
+        return;
+      }
+      var id = nav.dataset.course;
+      var wasTraining = (state.view !== 'course');
+      state.view = 'course';
+      if (!wasTraining && id === state.course) return;
+      state.course = id;
+      state.q = '';
+      state.filter = 'all';
+      if (state.full && state.full.byCourse && state.full.byCourse[state.course]) {
+        state.data = viewOf(state.full, state.course);
+        return render();
+      }
+      return load(true);
+    }
+
+    var c = ev.target.closest('[data-course]:not([data-view])');
+    if (c) {
+      if (c.dataset.course === state.course) return;
+      state.course = c.dataset.course;
+      state.q = '';                       // a search from the last course means nothing here
+      state.filter = 'all';               // and neither does its result filter
+      // Everything this needs is already here. Only fall back to the server if
+      // the payload predates byCourse, which means an older deployment.
+      if (state.full && state.full.byCourse && state.full.byCourse[state.course]) {
+        state.data = viewOf(state.full, state.course);
+        return render();
+      }
+      return load(true);
+    }
+    var b = ev.target.closest('[data-filter]');
+    if (b) { state.filter = b.dataset.filter; return render(); }
+    if (ev.target.closest('#refresh')) { load(true); }
+  });
+
+  /* ---------------------------------------------------------------- admins */
+
+  function submitAdmin() {
+    var inp = el('new-admin');
+    var v = inp ? inp.value.trim() : '';
+    if (!v) { state.adminMsg = 'Enter an email address first.'; state.adminMsgKind = 'bad'; return render(); }
+    callAdmins('addAdmin', v, 'Added ' + v + '.');
+  }
+
+  /* One path for all three calls, so the busy state, the error handling and the
+     redraw cannot drift apart between them. Every one of them returns the full
+     list, which is what keeps the panel honest after a change. */
+  function callAdmins(fn, arg, okMsg) {
+    if (state.adminBusy) return;
+    state.adminBusy = true;
+    var btn = el('add-admin');
+    if (btn && fn === 'addAdmin') { btn.disabled = true; btn.textContent = 'Adding…'; }
+
+    function done(res) {
+      state.adminBusy = false;
+      state.admins = res;
+      state.adminMsg = okMsg || '';
+      state.adminMsgKind = 'ok';
+      render();
+    }
+    function fail(err) {
+      state.adminBusy = false;
+      state.adminMsg = (err && err.message) || String(err);
+      state.adminMsgKind = 'bad';
+      render();
+    }
+
+    if (MODE !== 'live') {
+      // Preview mode has no server. Show the shape without pretending to write.
+      state.adminBusy = false;
+      state.admins = state.admins || { admins: [], viewer: '', viewerRole: '' };
+      state.adminMsg = 'Preview mode, nothing was changed.';
+      state.adminMsgKind = 'bad';
+      return render();
+    }
+    var runner = google.script.run.withSuccessHandler(done).withFailureHandler(fail);
+    if (arg === null) runner[fn]();
+    else runner[fn](arg);
+  }
+
+  /* hover tooltip on the bars */
+  var tip = document.createElement('div');
+  tip.className = 'tip';
+  document.body.appendChild(tip);
+  document.addEventListener('mousemove', function (ev) {
+    var row = ev.target.closest ? ev.target.closest('[data-tip]') : null;
+    if (!row) { tip.classList.remove('on'); return; }
+    tip.innerHTML = '<span class="tw">' + esc(row.querySelector('.bar-label').textContent) + '</span>' + esc(row.dataset.tip);
+    tip.classList.add('on');
+    var x = Math.min(ev.clientX + 14, window.innerWidth - tip.offsetWidth - 10);
+    tip.style.left = x + 'px';
+    tip.style.top = (ev.clientY + 16) + 'px';
+  });
+
+  /* ------------------------------------------------------------------ load */
+
+  function load(isRefresh) {
+    var btn = el('refresh');
+    if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+
+    function done(data) {
+      state.full = data;
+      state.course = data.selected;       // the server decides, so the tabs cannot drift out of step
+      state.data = viewOf(data, state.course);
+      if (btn) { btn.disabled = false; btn.textContent = 'Refresh'; }
+      // Redrawing the training view would reload the iframe and throw away the
+      // page the admin is already looking at. Only the views that use this data
+      // need repainting.
+      if (state.view === 'training' && !isRefresh) {
+        el('adm-nav').innerHTML = railNav(state.full);
+        return;
+      }
+      render();
+    }
+    function fail(err) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Refresh'; }
+      var nav = el('adm-nav');
+      if (nav) nav.innerHTML = railNav(state.full);   // keep the rail, only the panel failed
+      el('adm-body').innerHTML = '<div class="empty"><b>Could not load the dashboard</b>' +
+        esc((err && err.message) || String(err)) + '</div>';
+    }
+
+    if (MODE !== 'live') { return done(window.ADMIN_DATA); }
+    google.script.run.withSuccessHandler(done).withFailureHandler(fail).getAdminData(state.course);
+  }
+
+  // Paint immediately from the bootstrap, then fetch the course figures in the
+  // background. The admin sees the rail and the training app straight away
+  // rather than waiting on a full read of the results workbook.
+  render();
+  load(false);
+})();
+
+</script>
+</body>
+</html>

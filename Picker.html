@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Example Academies Training Platform, course picker.
+
+   Shown only when someone has more than one course. A single-course audience
+   goes straight into the course, which is what keeps their experience
+   unchanged by this page existing.
+
+   Palette is the Example Academies brand: crimson #7b0b18, the same value as
+   --crimson in Index.html. The two must not drift apart, or the picker and the
+   course it leads into are visibly different products. The brand has no success
+   or error colour of its own, so --done is a functional addition, chosen to
+   pass contrast rather than pulled from the guide.
+
+   DARK MODE. Index.html has followed the system setting since the first
+   version; this page did not, so a member of staff on a dark desktop got a
+   white flash between the picker and the course. Same approach as Index.html:
+   the media query is the default, and an explicit data-theme on the root wins
+   over it, so a future theme toggle needs no change here. Dark values are the
+   same ones Index.html uses, not new ones. */
+:root{
+  --maroon:#7b0b18;
+  --dark-maroon:#4a0710;
+  --mocha:#1a1416;
+  --walnut:#4a4245;
+  --sand:#cfc7c6;
+  --beige:#e4dedd;
+  --mist:#faf8f7;
+  --white:#fff;
+  --done:#156b52;          /* 6.1:1 on Mist. Not a brand colour, see note above. */
+  --head:'Bricolage Grotesque','Lato',-apple-system,'Segoe UI',Arial,sans-serif;
+  --body:'Lato',-apple-system,'Segoe UI',Arial,Helvetica,sans-serif;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --maroon:#e0687a;
+    --dark-maroon:#f0909e;
+    --mocha:#f3efee;
+    --walnut:#a1979a;
+    --sand:#453b3e;
+    --beige:#332b2d;
+    --mist:#141011;
+    --white:#1c1719;
+    --done:#5cc3a0;
+  }
+}
+
+:root[data-theme="dark"]{
+  --maroon:#e0687a;
+  --dark-maroon:#f0909e;
+  --mocha:#f3efee;
+  --walnut:#a1979a;
+  --sand:#453b3e;
+  --beige:#332b2d;
+  --mist:#141011;
+  --white:#1c1719;
+  --done:#5cc3a0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--mist);color:var(--mocha);font:16px/1.6 var(--body);
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:40px 20px 64px}
+
+header{margin-bottom:34px}
+.eyebrow{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--walnut);
+  font-weight:700;margin-bottom:10px}
+h1{font-family:var(--head);font-weight:700;font-size:30px;line-height:1.2;margin:0 0 10px;
+  color:var(--dark-maroon);letter-spacing:-.01em}
+.lede{margin:0;color:var(--walnut);max-width:52ch}
+
+.cards{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--white);border:1px solid var(--beige);border-radius:10px;padding:22px 24px;
+  display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.card.done{border-color:var(--sand);background:#fbf9f8}
+.card-main{flex:1 1 300px;min-width:0}
+h2{font-family:var(--head);font-weight:600;font-size:19px;margin:0 0 6px;color:var(--dark-maroon);
+  line-height:1.3}
+.summary{margin:0 0 12px;font-size:15px;color:var(--walnut)}
+.meta{font-size:13.5px;color:var(--walnut);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.meta span:not(:last-child)::after{content:'·';margin-left:8px;color:var(--sand)}
+
+.status{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;
+  padding:4px 11px;border-radius:999px;margin-bottom:10px}
+.status.todo{background:var(--beige);color:var(--maroon)}
+.status.progress{background:#fbf1e0;color:#8a5600}
+.status.complete{background:#e8f3ef;color:var(--done)}
+
+.action{flex:0 0 auto;align-self:center}
+.btn{display:inline-block;background:var(--maroon);color:var(--white);text-decoration:none;
+  font-weight:700;font-size:15px;padding:11px 22px;border-radius:6px;white-space:nowrap}
+.btn:hover{background:var(--dark-maroon)}
+.btn:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+.btn.again{background:transparent;color:var(--maroon);border:1.5px solid var(--sand);padding:9.5px 20px}
+.btn.again:hover{background:var(--white);border-color:var(--maroon)}
+
+footer{margin-top:40px;padding-top:22px;border-top:1px solid var(--beige);font-size:14px;
+  color:var(--walnut);display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
+footer a{color:var(--maroon)}
+footer .left{margin-right:auto}
+.who{font-size:13.5px;color:var(--sand);margin-top:6px}
+/* Shown only to administrators. Everyone else gets the page exactly as before,
+   with no gap where this would have been. */
+.admin-link{flex:none}
+.btn.small{padding:9px 18px;font-size:14px}
+
+@media (max-width:560px){
+  h1{font-size:25px}
+  .card{padding:20px}
+  .action{flex:1 1 100%}
+  .btn{display:block;text-align:center}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="org"></div>
+    <h1>Your training</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <div class="cards" id="cards"></div>
+
+  <footer>
+    <div class="left">
+      <div>Need help, or seen something odd? <a id="support" href="#"></a></div>
+      <div class="who" id="who"></div>
+    </div>
+    <div class="admin-link" id="adminLink"></div>
+  </footer>
+</div>
+
+<script>
+var COURSES = <?!= coursesJson ?>;
+var STATUS  = <?!= statusJson ?>;
+var ORG     = <?!= orgJson ?>;
+var USER    = <?!= userJson ?>;
+// Must use the force-printed scriptlet, as the four lines above do, not the
+// escaping one. JSON.stringify already emits a safe JS string literal; escaping
+// it would turn its quotes into entities, BASE would end up holding a string
+// with literal quote characters at each end, and every href built from it would
+// stop being an absolute URL and resolve against the sandbox iframe origin.
+//
+// Do not write either scriptlet form in a comment in this file. The template
+// engine scans the whole file, comments included, and an empty one compiles to
+// a bare semicolon. That is a syntax error, and it surfaces against whichever
+// line in Code.gs called evaluate(), which sends you looking in the wrong file.
+var BASE    = <?!= JSON.stringify(baseUrl) ?>;
+var IS_ADMIN = <?!= isAdmin ? 'true' : 'false' ?>;
+
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function stateOf(id){
+  var s = STATUS[id] || { attempts:0, passed:false };
+  if (s.passed) {
+    return s.dueSoon
+      ? { key:'complete', label:'Due again ' + s.dueDate, cta:'Retake', again:true }
+      : { key:'complete', label:'Completed' + (s.dueDate ? ', next due ' + s.dueDate : ''),
+          cta:'Review', again:true };
+  }
+  // Passed once but the certification has aged out. Say so, rather than
+  // "Not started", which tells someone who did sit it that their record is gone.
+  if (s.lastPassed) {
+    return { key:'todo', label:'Due again, last completed ' + s.lastPassed,
+             cta:'Retake', again:false };
+  }
+  if (s.attempts > 0) return { key:'progress', label:'Not yet passed', cta:'Try again', again:false };
+  return { key:'todo', label:'Not started', cta:'Start', again:false };
+}
+
+function render(){
+  document.getElementById('org').textContent = ORG.name + ' · Required training';
+  document.getElementById('who').textContent = 'Signed in as ' + USER.email;
+
+  // Same wording, same destination and same fallback as the footer inside a
+  // course, so the two pages do not offer people two different ways to ask for
+  // help. Falls back to the support address if no form URL is configured, so
+  // the footer is never a dead link.
+  var support = document.getElementById('support');
+  var formUrl = ORG.links && ORG.links.supportRequest;
+  if (formUrl) {
+    support.textContent = 'Log an IT Support Ticket';
+    support.href = formUrl;
+    support.target = '_blank';
+    support.rel = 'noopener';
+  } else {
+    var addr = (ORG.links && ORG.links.itSupportEmail) || ORG.supportEmail || '';
+    support.textContent = addr;
+    support.href = addr ? 'mailto:' + addr : '#';
+  }
+
+  // target="_top" for the same reason the course buttons use it: this page is
+  // inside a sandboxed iframe, so a plain link would load the dashboard within
+  // the frame and land on userCodeAppPanel.
+  if (IS_ADMIN && BASE) {
+    document.getElementById('adminLink').innerHTML =
+      '<a class="btn again small" target="_top" href="' + BASE + '?page=admin">Admin page</a>';
+  }
+
+  var outstanding = COURSES.filter(function(c){ return !stateOf(c.id).again; }).length;
+  document.getElementById('lede').textContent = outstanding
+    ? 'You have ' + outstanding + ' of ' + COURSES.length + ' still to complete. ' +
+      'You can stop and come back at any point, your progress is saved when you finish a course.'
+    : 'You are up to date on everything assigned to you. You can retake any of these at any time.';
+
+  document.getElementById('cards').innerHTML = COURSES.map(function(c){
+    var st = stateOf(c.id);
+    // target="_top" because this page renders inside a sandboxed iframe, so a
+    // plain link would navigate the frame rather than the browser.
+    var href = BASE ? BASE + '?course=' + encodeURIComponent(c.id) : '?course=' + encodeURIComponent(c.id);
+    var meta = [];
+    if (c.estimatedMinutes) meta.push('About ' + c.estimatedMinutes + ' minutes');
+    if (c.moduleCount) meta.push(c.moduleCount + ' sections');
+    meta.push('Version ' + esc(c.version));
+
+    return '<div class="card' + (st.again ? ' done' : '') + '">' +
+      '<div class="card-main">' +
+        '<div class="status ' + st.key + '">' + esc(st.label) + '</div>' +
+        '<h2>' + esc(c.title) + '</h2>' +
+        (c.summary ? '<p class="summary">' + esc(c.summary) + '</p>' : '') +
+        '<div class="meta">' + meta.map(function(m){ return '<span>' + esc(m) + '</span>'; }).join('') + '</div>' +
+      '</div>' +
+      '<div class="action">' +
+        '<a class="btn' + (st.again ? ' again' : '') + '" target="_top" href="' + esc(href) + '">' +
+          esc(st.cta) + '</a>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+render();
+</script>
+</body>
+</html>
